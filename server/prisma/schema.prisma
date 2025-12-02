@@ -48,6 +48,7 @@ model Prize {
   // Relations
   tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 
+  @@unique([tenantId, name])
   @@map("prizes")
 }
 
