@@ -1,0 +1,5 @@
+{
+  "name": "Spin & Win Admin",
+  "description": "A customer-facing spin-the-wheel game with a comprehensive admin dashboard for managing users, prizes, and viewing analytics.",
+  "requestFramePermissions": []
+}
