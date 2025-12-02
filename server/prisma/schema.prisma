@@ -1,0 +1,141 @@
+// Prisma Schema for Spin the Wheel Application
+// Database: PostgreSQL
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// Tenant represents a business account (restaurant, store, etc.)
+model Tenant {
+  id              String   @id @default(uuid())
+  name            String   // Business name
+  ownerName       String
+  email           String   @unique
+  password        String   // Hashed password
+  status          String   @default("Active") // Active, Trial, Suspended
+  plan            String   @default("Starter") // Starter, Growth, Enterprise
+  nextBillingDate DateTime
+  logo            String?
+  primaryColor    String   @default("#2bbdee")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  prizes          Prize[]
+  users           User[]
+  spinConfig      SpinConfiguration?
+  spinHistory     SpinHistory[]
+  subscription    Subscription?
+
+  @@map("tenants")
+}
+
+// Prize configured by tenant
+model Prize {
+  id          String   @id @default(uuid())
+  tenantId    String
+  name        String
+  type        String   // Food Item, Discount, Merchandise, Voucher
+  description String
+  status      String   @default("Active") // Active, Inactive
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@map("prizes")
+}
+
+// End users who spin the wheel (customers)
+model User {
+  id         String   @id @default(uuid())
+  tenantId   String
+  name       String
+  email      String
+  avatar     String?
+  plan       String   @default("Basic") // Basic, Premium
+  status     String   @default("Active") // Active, Inactive, Pending
+  dateJoined DateTime @default(now())
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  // Relations
+  tenant     Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, email])
+  @@map("users")
+}
+
+// Spin wheel customization per tenant
+model SpinConfiguration {
+  id                String   @id @default(uuid())
+  tenantId          String   @unique
+  wheelColors       String[] // Array of color codes
+  spinDuration      Int      @default(5000) // milliseconds
+  soundEnabled      Boolean  @default(true)
+  showConfetti      Boolean  @default(true)
+  customMessage     String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  // Relations
+  tenant            Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@map("spin_configurations")
+}
+
+// Record of all spins
+model SpinHistory {
+  id         String   @id @default(uuid())
+  tenantId   String
+  userName   String?  // Name of person who spun
+  userEmail  String?  // Email of person who spun
+  prizeWon   String   // Name of prize won
+  timestamp  DateTime @default(now())
+
+  // Relations
+  tenant     Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@map("spin_history")
+}
+
+// Subscription and billing information
+model Subscription {
+  id              String   @id @default(uuid())
+  tenantId        String   @unique
+  plan            String   // Starter, Growth, Enterprise
+  status          String   @default("Active") // Active, Cancelled, PastDue
+  currentPeriodStart DateTime
+  currentPeriodEnd   DateTime
+  cancelAtPeriodEnd  Boolean @default(false)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  tenant          Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  invoices        Invoice[]
+
+  @@map("subscriptions")
+}
+
+// Invoice records
+model Invoice {
+  id             String   @id @default(uuid())
+  subscriptionId String
+  amount         Float
+  currency       String   @default("USD")
+  status         String   // Paid, Pending, Failed
+  dueDate        DateTime
+  paidDate       DateTime?
+  createdAt      DateTime @default(now())
+
+  // Relations
+  subscription   Subscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+
+  @@map("invoices")
+}

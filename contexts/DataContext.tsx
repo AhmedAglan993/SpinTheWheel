@@ -1,98 +1,222 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { User, Prize, Tenant, Invoice } from '../types';
+import { authAPI, prizesAPI, usersAPI, subscriptionAPI, tenantAPI } from '../services/api';
 
 interface DataContextType {
-  // Global Data
-  tenants: Tenant[];
-  
   // Auth State
   currentTenant: Tenant | null;
-  login: (email: string) => boolean;
+  isLoading: boolean;
+  login: (email: string, password: string) => Promise<boolean>;
   logout: () => void;
-  register: (tenant: Tenant) => void;
-  updateTenantSettings: (id: string, updates: Partial<Tenant>) => void;
+  register: (data: { businessName: string; email: string; password: string; plan?: string }) => Promise<boolean>;
+  updateTenantSettings: (updates: Partial<Tenant>) => Promise<void>;
 
-  // Tenant Specific Data getters
-  getTenantPrizes: (tenantId: string) => Prize[];
-  getTenantUsers: (tenantId: string) => User[];
-  
-  // Actions
-  addPrize: (prize: Prize) => void;
-  deletePrize: (id: string) => void;
-  addUser: (user: User) => void;
-  deleteUser: (id: string) => void;
+  // Data getters
+  prizes: Prize[];
+  users: User[];
   invoices: Invoice[];
+
+  // Actions
+  addPrize: (prize: Omit<Prize, 'id' | 'tenantId' | 'createdAt' | 'updatedAt'>) => Promise<void>;
+  deletePrize: (id: string) => Promise<void>;
+  updatePrize: (id: string, updates: Partial<Prize>) => Promise<void>;
+  addUser: (user: Omit<User, 'id' | 'tenantId' | 'createdAt' | 'updatedAt' | 'dateJoined'>) => Promise<void>;
+  deleteUser: (id: string) => Promise<void>;
+
+  // Refresh functions
+  refreshPrizes: () => Promise<void>;
+  refreshUsers: () => Promise<void>;
 }
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
 
-// Mock Initial Data
-const initialTenants: Tenant[] = [
-  { id: 'demo', name: 'The Grand Eatery', ownerName: 'John Doe', email: 'demo@example.com', status: 'Active', plan: 'Growth', nextBillingDate: 'Oct 24, 2023', logo: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDFdq24kBzGT70B2mU4hnGiMLSSS_7-bOVcC0XCUz7JUlscw6Znhe1JgRqeAmpApyE41WV-78xKOju3C0OGwpzvTfSEVT-DEZ6zuAoi4BnaUQuIRC_UYEyz0uyueOHe1HH5eKSTInthr7QJAOpbTWbt8iHATRu3bRk9N3N3wVXxX_7_LMqLO2aGdFfK3knW7ZUhUAfb0g9nCRQxIulNWBSduu57hQiclDYePyxhRc4eoN5wcfiEjE1cFo2uzaLFBMlPzzGw3Bz4Vso', primaryColor: '#2bbdee' },
-];
-
-const initialPrizes: Prize[] = [
-  { id: '1', tenantId: 'demo', name: 'Free Appetizer', type: 'Food Item', description: 'Any appetizer up to $10 value', status: 'Active' },
-  { id: '2', tenantId: 'demo', name: '15% Off Total', type: 'Discount', description: 'Valid on orders over $50', status: 'Active' },
-  { id: '3', tenantId: 'demo', name: 'Free Drink', type: 'Food Item', description: 'Soft drink or iced tea', status: 'Active' },
-  { id: '4', tenantId: 'demo', name: '$5 Voucher', type: 'Voucher', description: 'For next visit', status: 'Active' },
-];
-
-const initialUsers: User[] = [
-  { id: '1', tenantId: 'demo', name: 'Eleanor Pena', email: 'eleanor.p@example.com', avatar: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCtnCHce-ubLphotiHHzNBj0H7xPkfLTErc7Sn9LY5WFsDklBE5x3x4tyA9Eb5sUNzbA5t4B5BCf2ZJSUnPCiTQm9L2Qp5k2jyolET2irZFXEV4jK22cZe6bR1VLqGl3epR0Jbgm78wdygZjhA8G1QYNmBYFGEqdlfT-2K6AWJqNwgdbxhDDBBOowD2Q2-B4QgmISKRuvKAF_Yd8K2OMJSSGz9IUHEcDUtrZPee28fkqaZKijBxZPcIOvVWrE_VQGfyHqkkOEfK7Vo', plan: 'Basic', status: 'Active', dateJoined: '2023-05-12' },
-];
-
-const initialInvoices: Invoice[] = [
-  { id: 'INV-001', date: 'Oct 01, 2023', amount: '$49.00', status: 'Paid', plan: 'Growth Plan' },
-];
-
 export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [tenants, setTenants] = useState<Tenant[]>(initialTenants);
-  const [prizes, setPrizes] = useState<Prize[]>(initialPrizes);
-  const [users, setUsers] = useState<User[]>(initialUsers);
   const [currentTenant, setCurrentTenant] = useState<Tenant | null>(null);
+  const [prizes, setPrizes] = useState<Prize[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
+  const [invoices, setInvoices] = useState<Invoice[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Check for existing session on mount
+  useEffect(() => {
+    const checkAuth = async () => {
+      const token = localStorage.getItem('auth_token');
+      if (token) {
+        try {
+          const tenant = await authAPI.getMe();
+          setCurrentTenant(tenant);
+          await loadTenantData();
+        } catch (error) {
+          console.error('Auth check failed:', error);
+          localStorage.removeItem('auth_token');
+          localStorage.removeItem('current_tenant');
+        }
+      }
+      setIsLoading(false);
+    };
+
+    checkAuth();
+  }, []);
+
+  // Load tenant-specific data
+  const loadTenantData = async () => {
+    try {
+      const [prizesData, usersData] = await Promise.all([
+        prizesAPI.getAll(),
+        usersAPI.getAll()
+      ]);
+      setPrizes(prizesData);
+      setUsers(usersData);
+
+      // Load invoices
+      try {
+        const subscriptionData = await subscriptionAPI.get();
+        setInvoices(subscriptionData.invoices || []);
+      } catch (error) {
+        console.error('Failed to load invoices:', error);
+      }
+    } catch (error) {
+      console.error('Failed to load tenant data:', error);
+    }
+  };
 
   // Auth Functions
-  const login = (email: string) => {
-    const tenant = tenants.find(t => t.email === email);
-    if (tenant) {
+  const login = async (email: string, password: string): Promise<boolean> => {
+    try {
+      const { tenant, token } = await authAPI.login(email, password);
+      localStorage.setItem('auth_token', token);
+      localStorage.setItem('current_tenant', JSON.stringify(tenant));
       setCurrentTenant(tenant);
+      await loadTenantData();
       return true;
-    }
-    return false;
-  };
-
-  const logout = () => setCurrentTenant(null);
-
-  const register = (tenant: Tenant) => {
-    setTenants([...tenants, tenant]);
-    setCurrentTenant(tenant);
-  };
-
-  const updateTenantSettings = (id: string, updates: Partial<Tenant>) => {
-    setTenants(tenants.map(t => t.id === id ? { ...t, ...updates } : t));
-    if (currentTenant?.id === id) {
-      setCurrentTenant({ ...currentTenant, ...updates });
+    } catch (error) {
+      console.error('Login failed:', error);
+      return false;
     }
   };
 
-  // Data Accessors
-  const getTenantPrizes = (tenantId: string) => prizes.filter(p => p.tenantId === tenantId);
-  const getTenantUsers = (tenantId: string) => users.filter(u => u.tenantId === tenantId);
+  const logout = () => {
+    localStorage.removeItem('auth_token');
+    localStorage.removeItem('current_tenant');
+    setCurrentTenant(null);
+    setPrizes([]);
+    setUsers([]);
+    setInvoices([]);
+  };
 
-  // Actions
-  const addPrize = (prize: Prize) => setPrizes([...prizes, prize]);
-  const deletePrize = (id: string) => setPrizes(prizes.filter(p => p.id !== id));
-  
-  const addUser = (user: User) => setUsers([...users, user]);
-  const deleteUser = (id: string) => setUsers(users.filter(u => u.id !== id));
+  const register = async (data: { businessName: string; email: string; password: string; plan?: string }): Promise<boolean> => {
+    try {
+      const { tenant, token } = await authAPI.signup(data);
+      localStorage.setItem('auth_token', token);
+      localStorage.setItem('current_tenant', JSON.stringify(tenant));
+      setCurrentTenant(tenant);
+      await loadTenantData();
+      return true;
+    } catch (error) {
+      console.error('Registration failed:', error);
+      return false;
+    }
+  };
+
+  const updateTenantSettings = async (updates: Partial<Tenant>) => {
+    try {
+      const updatedTenant = await tenantAPI.update(updates);
+      setCurrentTenant(updatedTenant);
+      localStorage.setItem('current_tenant', JSON.stringify(updatedTenant));
+    } catch (error) {
+      console.error('Failed to update tenant settings:', error);
+      throw error;
+    }
+  };
+
+  // Prize Actions
+  const refreshPrizes = async () => {
+    try {
+      const prizesData = await prizesAPI.getAll();
+      setPrizes(prizesData);
+    } catch (error) {
+      console.error('Failed to refresh prizes:', error);
+    }
+  };
+
+  const addPrize = async (prize: Omit<Prize, 'id' | 'tenantId' | 'createdAt' | 'updatedAt'>) => {
+    try {
+      await prizesAPI.create(prize);
+      await refreshPrizes();
+    } catch (error) {
+      console.error('Failed to add prize:', error);
+      throw error;
+    }
+  };
+
+  const deletePrize = async (id: string) => {
+    try {
+      await prizesAPI.delete(id);
+      await refreshPrizes();
+    } catch (error) {
+      console.error('Failed to delete prize:', error);
+      throw error;
+    }
+  };
+
+  const updatePrize = async (id: string, updates: Partial<Prize>) => {
+    try {
+      await prizesAPI.update(id, updates);
+      await refreshPrizes();
+    } catch (error) {
+      console.error('Failed to update prize:', error);
+      throw error;
+    }
+  };
+
+  // User Actions
+  const refreshUsers = async () => {
+    try {
+      const usersData = await usersAPI.getAll();
+      setUsers(usersData);
+    } catch (error) {
+      console.error('Failed to refresh users:', error);
+    }
+  };
+
+  const addUser = async (user: Omit<User, 'id' | 'tenantId' | 'createdAt' | 'updatedAt' | 'dateJoined'>) => {
+    try {
+      await usersAPI.create(user);
+      await refreshUsers();
+    } catch (error) {
+      console.error('Failed to add user:', error);
+      throw error;
+    }
+  };
+
+  const deleteUser = async (id: string) => {
+    try {
+      await usersAPI.delete(id);
+      await refreshUsers();
+    } catch (error) {
+      console.error('Failed to delete user:', error);
+      throw error;
+    }
+  };
 
   return (
-    <DataContext.Provider value={{ 
-      tenants, currentTenant, login, logout, register, updateTenantSettings,
-      getTenantPrizes, getTenantUsers,
-      addPrize, deletePrize, addUser, deleteUser,
-      invoices: initialInvoices
+    <DataContext.Provider value={{
+      currentTenant,
+      isLoading,
+      login,
+      logout,
+      register,
+      updateTenantSettings,
+      prizes,
+      users,
+      invoices,
+      addPrize,
+      deletePrize,
+      updatePrize,
+      addUser,
+      deleteUser,
+      refreshPrizes,
+      refreshUsers
     }}>
       {children}
     </DataContext.Provider>
