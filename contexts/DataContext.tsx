@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { User, Prize, Tenant, Invoice } from '../types';
-import { authAPI, prizesAPI, usersAPI, subscriptionAPI, tenantAPI } from '../services/api';
+import { authAPI, prizesAPI, usersAPI, subscriptionAPI, tenantAPI } from '../src/services/api';
 
 interface DataContextType {
   // Auth State
