@@ -26,14 +26,14 @@ const App: React.FC = () => {
       <Routes>
         {/* Marketing Site */}
         <Route path="/" element={<LandingPage />} />
-        
+
         {/* Authentication */}
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignupPage />} />
-        
+
         {/* The Public Game Link */}
         <Route path="/play/:tenantId" element={<SpinGamePage />} />
-        
+
         {/* Client Admin Dashboard (Protected) */}
         <Route path="/admin" element={
           <ProtectedRoute>
@@ -47,6 +47,9 @@ const App: React.FC = () => {
           <Route path="users" element={<UsersPage />} />
           <Route path="subscription" element={<SubscriptionPage />} />
         </Route>
+
+        {/* Catch all */}
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </HashRouter>
   );
