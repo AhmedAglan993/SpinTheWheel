@@ -8,6 +8,8 @@ const AdminLayout: React.FC = () => {
   const getPageTitle = () => {
     if (location.pathname.includes('users')) return 'User Management';
     if (location.pathname.includes('prizes')) return 'Prize Management';
+    if (location.pathname.includes('tenants')) return 'Clients & Restaurants';
+    if (location.pathname.includes('subscription')) return 'Billing & Subscription';
     return 'Admin Dashboard';
   };
 
