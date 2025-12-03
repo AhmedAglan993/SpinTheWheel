@@ -30,8 +30,8 @@ app.use(cors({
         // Allow specific frontend URL from env
         if (origin === process.env.FRONTEND_URL) return callback(null, true);
 
-        // Reject others
-        callback(new Error('Not allowed by CORS'));
+        // Reject others (don't throw error, just return false)
+        callback(null, false);
     },
     credentials: true
 }));
