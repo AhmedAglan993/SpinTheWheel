@@ -1,9 +1,5 @@
-import { defineConfig } from '@prisma/client';
-
-export default defineConfig({
-    datasources: {
-        db: {
-            url: process.env.DATABASE_URL || 'postgresql://postgres:postgres@localhost:5432/spinthewheel?schema=public',
-        },
+export default {
+    datasource: {
+        url: process.env.DATABASE_URL,
     },
-});
+};
