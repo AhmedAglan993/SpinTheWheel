@@ -130,6 +130,31 @@ const SpinGamePage: React.FC = () => {
   const backgroundColor = activeTenant.backgroundColor || '#f8fafc';
   const textColor = activeTenant.textColor || '#0f172a';
 
+  // Generate wheel slice colors based on theme
+  const generateWheelColors = (primary: string, secondary: string) => {
+    // Helper to lighten/darken a hex color
+    const adjustColor = (hex: string, percent: number) => {
+      const num = parseInt(hex.replace('#', ''), 16);
+      const r = Math.min(255, Math.max(0, (num >> 16) + percent));
+      const g = Math.min(255, Math.max(0, ((num >> 8) & 0x00FF) + percent));
+      const b = Math.min(255, Math.max(0, (num & 0x0000FF) + percent));
+      return `#${((r << 16) | (g << 8) | b).toString(16).padStart(6, '0')}`;
+    };
+
+    return [
+      primary,                      // Primary color
+      adjustColor(primary, 40),     // Lighter version
+      secondary,                    // Secondary color
+      adjustColor(secondary, 40),   // Lighter version
+      adjustColor(primary, -30),    // Darker version
+      adjustColor(secondary, -30),  // Darker version
+      adjustColor(primary, 70),     // Even lighter
+      adjustColor(secondary, 70)    // Even lighter
+    ];
+  };
+
+  const wheelColors = generateWheelColors(primaryColor, secondaryColor);
+
   return (
     <div
       className="relative flex min-h-screen w-full flex-col items-center justify-center p-4 overflow-hidden font-display"
@@ -178,7 +203,7 @@ const SpinGamePage: React.FC = () => {
                     <g key={prize.id || i}>
                       <path
                         d={slicePath}
-                        fill={WHEEL_COLORS[i % WHEEL_COLORS.length]}
+                        fill={wheelColors[i % wheelColors.length]}
                         stroke="white"
                         strokeWidth="0.5"
                       />
