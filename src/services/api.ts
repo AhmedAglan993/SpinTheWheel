@@ -53,12 +53,12 @@ export const authAPI = {
 
 // Prizes API
 export const prizesAPI = {
-    getAll: async () => {
-        const response = await api.get('/prizes');
+    getAll: async (projectId?: string) => {
+        const response = await api.get('/prizes', { params: { projectId } });
         return response.data;
     },
 
-    create: async (data: { name: string; type: string; description: string; status?: string }) => {
+    create: async (data: { name: string; type: string; description: string; status?: string; projectId?: string }) => {
         const response = await api.post('/prizes', data);
         return response.data;
     },
@@ -105,12 +105,13 @@ export const spinAPI = {
         soundEnabled?: boolean;
         showConfetti?: boolean;
         customMessage?: string;
+        projectId?: string;
     }) => {
         const response = await api.put('/spin/config', data);
         return response.data;
     },
 
-    recordSpin: async (data: { tenantId: string; userName?: string; userEmail?: string; prizeWon: string }) => {
+    recordSpin: async (data: { tenantId: string; projectId?: string; userName?: string; userEmail?: string; prizeWon: string }) => {
         const response = await api.post('/spin/record', data);
         return response.data;
     },
@@ -156,6 +157,48 @@ export const tenantAPI = {
         textColor?: string;
     }) => {
         const response = await api.put('/tenant', data);
+        return response.data;
+    }
+};
+
+// Projects API
+export const projectsAPI = {
+    getAll: async () => {
+        const response = await api.get('/projects');
+        return response.data;
+    },
+
+    get: async (id: string) => {
+        const response = await api.get(`/projects/${id}`);
+        return response.data;
+    },
+
+    create: async (data: {
+        name: string;
+        startDate?: string;
+        endDate?: string;
+        spinLimit?: number;
+        price?: number;
+    }) => {
+        const response = await api.post('/projects', data);
+        return response.data;
+    },
+
+    update: async (id: string, data: {
+        name?: string;
+        startDate?: string;
+        endDate?: string;
+        spinLimit?: number;
+        price?: number;
+        status?: string;
+        isPaid?: boolean;
+    }) => {
+        const response = await api.put(`/projects/${id}`, data);
+        return response.data;
+    },
+
+    delete: async (id: string) => {
+        const response = await api.delete(`/projects/${id}`);
         return response.data;
     }
 };

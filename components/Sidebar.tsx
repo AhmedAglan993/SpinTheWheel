@@ -6,13 +6,12 @@ const Sidebar: React.FC = () => {
   const { currentTenant, logout } = useData();
 
   const linkClass = ({ isActive }: { isActive: boolean }) =>
-    `flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
-      isActive
-        ? 'bg-primary/10 text-primary dark:bg-primary dark:text-white'
-        : 'text-text-light dark:text-text-dark hover:bg-slate-100 dark:hover:bg-slate-800'
+    `flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors ${isActive
+      ? 'bg-primary/10 text-primary dark:bg-primary dark:text-white'
+      : 'text-text-light dark:text-text-dark hover:bg-slate-100 dark:hover:bg-slate-800'
     }`;
 
-  const iconClass = (isActive: boolean) => 
+  const iconClass = (isActive: boolean) =>
     `material-symbols-outlined ${isActive ? 'filled' : ''}`;
 
   if (!currentTenant) return null;
@@ -22,8 +21,8 @@ const Sidebar: React.FC = () => {
       <div className="flex flex-col h-full p-4">
         {/* Logo Area */}
         <div className="flex items-center gap-3 p-2 mb-6">
-          <div 
-            className="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10 border border-slate-200" 
+          <div
+            className="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10 border border-slate-200"
             style={{ backgroundImage: `url("${currentTenant.logo}")` }}
           />
           <div className="flex flex-col overflow-hidden">
@@ -42,12 +41,24 @@ const Sidebar: React.FC = () => {
               </>
             )}
           </NavLink>
-          
+
+          <div className="px-3 py-2 mt-2 text-xs font-semibold text-slate-400 uppercase tracking-wider">
+            Agency
+          </div>
+          <NavLink to="/admin/projects" className={linkClass}>
+            {({ isActive }) => (
+              <>
+                <span className={iconClass(isActive)}>folder</span>
+                Projects
+              </>
+            )}
+          </NavLink>
+
           <div className="px-3 py-2 mt-2 text-xs font-semibold text-slate-400 uppercase tracking-wider">
             Game Setup
           </div>
           <NavLink to="/admin/settings" className={linkClass}>
-             {({ isActive }) => (
+            {({ isActive }) => (
               <>
                 <span className={iconClass(isActive)}>tune</span>
                 Customization
@@ -55,7 +66,7 @@ const Sidebar: React.FC = () => {
             )}
           </NavLink>
           <NavLink to="/admin/prizes" className={linkClass}>
-             {({ isActive }) => (
+            {({ isActive }) => (
               <>
                 <span className={iconClass(isActive)}>emoji_events</span>
                 Prizes
@@ -67,7 +78,7 @@ const Sidebar: React.FC = () => {
             Data
           </div>
           <NavLink to="/admin/users" className={linkClass}>
-             {({ isActive }) => (
+            {({ isActive }) => (
               <>
                 <span className={iconClass(isActive)}>group</span>
                 Collected Leads
@@ -79,7 +90,7 @@ const Sidebar: React.FC = () => {
             Account
           </div>
           <NavLink to="/admin/subscription" className={linkClass}>
-             {({ isActive }) => (
+            {({ isActive }) => (
               <>
                 <span className={iconClass(isActive)}>credit_card</span>
                 Billing

@@ -7,6 +7,7 @@ import DashboardPage from './pages/admin/DashboardPage';
 import SettingsPage from './pages/admin/SettingsPage';
 import PrizesPage from './pages/admin/PrizesPage';
 import UsersPage from './pages/admin/UsersPage';
+import ProjectsPage from './pages/admin/ProjectsPage';
 import SubscriptionPage from './pages/admin/SubscriptionPage';
 import SpinGamePage from './pages/SpinGamePage';
 import { useData } from './contexts/DataContext';
@@ -45,6 +46,7 @@ const App: React.FC = () => {
           <Route path="settings" element={<SettingsPage />} />
           <Route path="prizes" element={<PrizesPage />} />
           <Route path="users" element={<UsersPage />} />
+          <Route path="projects" element={<ProjectsPage />} />
           <Route path="subscription" element={<SubscriptionPage />} />
         </Route>
 
