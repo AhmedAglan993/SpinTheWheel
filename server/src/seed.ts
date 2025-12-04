@@ -97,21 +97,27 @@ async function seed() {
 
         console.log(`✅ Created ${users.length} sample users`);
 
-        // Create spin configuration
-        await prisma.spinConfiguration.upsert({
-            where: { tenantId: demoTenant.id },
-            update: {},
-            create: {
-                tenantId: demoTenant.id,
-                wheelColors: ['#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A', '#98D8C8', '#F7DC6F'],
-                spinDuration: 5000,
-                soundEnabled: true,
-                showConfetti: true,
-                customMessage: 'Spin to win amazing prizes!'
-            }
+        // Create spin configuration (default tenant config, not project-specific)
+        const existingConfig = await prisma.spinConfiguration.findFirst({
+            where: { tenantId: demoTenant.id, projectId: null }
         });
 
-        console.log('✅ Created spin configuration');
+        if (!existingConfig) {
+            await prisma.spinConfiguration.create({
+                data: {
+                    tenantId: demoTenant.id,
+                    projectId: null,
+                    wheelColors: ['#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A', '#98D8C8', '#F7DC6F'],
+                    spinDuration: 5000,
+                    soundEnabled: true,
+                    showConfetti: true,
+                    customMessage: 'Spin to win amazing prizes!'
+                }
+            });
+            console.log('✅ Created spin configuration');
+        } else {
+            console.log('✅ Spin configuration already exists');
+        }
 
         console.log('\n🎉 Database seeded successfully!');
         console.log('\n📝 Demo credentials:');
