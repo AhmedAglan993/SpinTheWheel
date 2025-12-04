@@ -48,7 +48,10 @@ router.get('/config/:tenantId', async (req, res: Response) => {
             tenant: {
                 name: tenant.name,
                 logo: tenant.logo,
-                primaryColor: tenant.primaryColor
+                primaryColor: tenant.primaryColor,
+                secondaryColor: tenant.secondaryColor,
+                backgroundColor: tenant.backgroundColor,
+                textColor: tenant.textColor
             },
             config,
             prizes

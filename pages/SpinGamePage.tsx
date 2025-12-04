@@ -38,7 +38,7 @@ const SpinGamePage: React.FC = () => {
 
         const { tenant, prizes } = response.data;
 
-        // Convert the minimal tenant data to our Tenant type
+        // Convert the minimal tenant data to our Tenant type with all theme colors
         const tenantData: Tenant = {
           id: tenantId,
           name: tenant.name,
@@ -48,7 +48,10 @@ const SpinGamePage: React.FC = () => {
           plan: 'Starter',
           nextBillingDate: '',
           logo: tenant.logo || '',
-          primaryColor: tenant.primaryColor || '#2bbdee'
+          primaryColor: tenant.primaryColor || '#2bbdee',
+          secondaryColor: tenant.secondaryColor || '#1e293b',
+          backgroundColor: tenant.backgroundColor || '#f8fafc',
+          textColor: tenant.textColor || '#0f172a'
         };
 
         setActiveTenant(tenantData);
@@ -123,13 +126,19 @@ const SpinGamePage: React.FC = () => {
   );
 
   const primaryColor = activeTenant.primaryColor || '#2bbdee';
+  const secondaryColor = activeTenant.secondaryColor || '#1e293b';
+  const backgroundColor = activeTenant.backgroundColor || '#f8fafc';
+  const textColor = activeTenant.textColor || '#0f172a';
 
   return (
-    <div className="relative flex min-h-screen w-full flex-col items-center justify-center p-4 bg-background-light dark:bg-background-dark overflow-hidden font-display text-text-light dark:text-text-dark">
+    <div
+      className="relative flex min-h-screen w-full flex-col items-center justify-center p-4 overflow-hidden font-display"
+      style={{ backgroundColor: backgroundColor, color: textColor }}
+    >
 
       {/* Header */}
       <header className="absolute top-0 flex w-full max-w-5xl items-center justify-between p-6 lg:p-10 z-20">
-        <div className="flex items-center gap-3 text-slate-900 dark:text-white">
+        <div className="flex items-center gap-3" style={{ color: textColor }}>
           {activeTenant.logo && (
             <img src={activeTenant.logo} alt="Logo" className="size-8 rounded-full object-cover" />
           )}
@@ -140,7 +149,7 @@ const SpinGamePage: React.FC = () => {
       {/* Main Content */}
       <main className="flex w-full max-w-5xl flex-1 flex-col items-center justify-center px-4 py-16 relative z-10">
         <div className="flex flex-col items-center gap-4 text-center md:gap-8">
-          <h1 className="text-4xl font-bold tracking-tight text-slate-900 dark:text-white md:text-5xl">Spin to Win!</h1>
+          <h1 className="text-4xl font-bold tracking-tight md:text-5xl" style={{ color: textColor }}>Spin to Win!</h1>
 
           {/* Wheel Container */}
           <div className="relative w-full max-w-[320px] md:max-w-[400px] aspect-square">
@@ -211,48 +220,50 @@ const SpinGamePage: React.FC = () => {
             </button>
           </div>
         </div>
-      </main>
+      </main >
 
       {/* Footer */}
-      <footer className="absolute bottom-4 w-full flex justify-center items-center gap-6 text-xs text-slate-400 z-20 px-4">
+      < footer className="absolute bottom-4 w-full flex justify-center items-center gap-6 text-xs text-slate-400 z-20 px-4" >
         <span>&copy; {new Date().getFullYear()} {activeTenant.name}</span>
-      </footer>
+      </footer >
 
       {/* Prize Modal */}
-      {showModal && wonPrize && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-          <div className="w-full max-w-md rounded-2xl bg-white dark:bg-slate-800 shadow-2xl transform transition-all scale-100 animate-in zoom-in-95 duration-200">
-            <div className="flex flex-col items-center p-8 text-center md:p-12">
-              <div
-                className="mb-6 flex size-20 items-center justify-center rounded-full text-white animate-bounce"
-                style={{ backgroundColor: `${primaryColor}30`, color: primaryColor }}
-              >
-                <span className="material-symbols-outlined !text-5xl">trophy</span>
+      {
+        showModal && wonPrize && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+            <div className="w-full max-w-md rounded-2xl bg-white dark:bg-slate-800 shadow-2xl transform transition-all scale-100 animate-in zoom-in-95 duration-200">
+              <div className="flex flex-col items-center p-8 text-center md:p-12">
+                <div
+                  className="mb-6 flex size-20 items-center justify-center rounded-full text-white animate-bounce"
+                  style={{ backgroundColor: `${primaryColor}30`, color: primaryColor }}
+                >
+                  <span className="material-symbols-outlined !text-5xl">trophy</span>
+                </div>
+
+                <h3 className="text-2xl font-bold text-slate-900 dark:text-white">Congratulations!</h3>
+                <p className="mt-2 text-slate-600 dark:text-slate-400">You've won</p>
+
+                <div className="mt-6 p-4 w-full bg-slate-50 dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-700">
+                  <p className="text-3xl font-black tracking-tight uppercase" style={{ color: primaryColor }}>{wonPrize.name}</p>
+                  {wonPrize.description && <p className="text-sm text-slate-500 mt-2">{wonPrize.description}</p>}
+                </div>
+
+                <p className="mt-6 text-sm text-slate-500 dark:text-slate-400">
+                  Present this screen at the counter to redeem your prize.
+                </p>
+
+                <button
+                  onClick={closeModal}
+                  className="mt-8 flex h-12 w-full cursor-pointer items-center justify-center rounded-xl bg-slate-200 dark:bg-slate-700 px-5 text-base font-bold text-slate-800 dark:text-white hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors"
+                >
+                  Done
+                </button>
               </div>
-
-              <h3 className="text-2xl font-bold text-slate-900 dark:text-white">Congratulations!</h3>
-              <p className="mt-2 text-slate-600 dark:text-slate-400">You've won</p>
-
-              <div className="mt-6 p-4 w-full bg-slate-50 dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-700">
-                <p className="text-3xl font-black tracking-tight uppercase" style={{ color: primaryColor }}>{wonPrize.name}</p>
-                {wonPrize.description && <p className="text-sm text-slate-500 mt-2">{wonPrize.description}</p>}
-              </div>
-
-              <p className="mt-6 text-sm text-slate-500 dark:text-slate-400">
-                Present this screen at the counter to redeem your prize.
-              </p>
-
-              <button
-                onClick={closeModal}
-                className="mt-8 flex h-12 w-full cursor-pointer items-center justify-center rounded-xl bg-slate-200 dark:bg-slate-700 px-5 text-base font-bold text-slate-800 dark:text-white hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors"
-              >
-                Done
-              </button>
             </div>
           </div>
-        </div>
-      )}
-    </div>
+        )
+      }
+    </div >
   );
 };
 
