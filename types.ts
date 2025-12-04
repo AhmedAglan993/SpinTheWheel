@@ -28,7 +28,10 @@ export interface Tenant {
   plan: 'Starter' | 'Growth' | 'Enterprise';
   nextBillingDate: string;
   logo: string;
-  primaryColor: string; // Custom branding
+  primaryColor: string; // Main accent color
+  secondaryColor?: string; // Secondary accent color
+  backgroundColor?: string; // Background color
+  textColor?: string; // Text color
 }
 
 export interface Invoice {
