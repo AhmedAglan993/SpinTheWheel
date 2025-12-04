@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { useData } from '../contexts/DataContext';
 import { Prize, Tenant } from '../types';
+import axios from 'axios';
+
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
 
 const WHEEL_COLORS = [
   '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4',
@@ -10,11 +12,11 @@ const WHEEL_COLORS = [
 
 const SpinGamePage: React.FC = () => {
   const { tenantId } = useParams<{ tenantId: string }>();
-  const { tenants, getTenantPrizes } = useData();
 
   const [activeTenant, setActiveTenant] = useState<Tenant | null>(null);
   const [activePrizes, setActivePrizes] = useState<Prize[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const [showModal, setShowModal] = useState(false);
   const [isSpinning, setIsSpinning] = useState(false);
@@ -22,27 +24,45 @@ const SpinGamePage: React.FC = () => {
   const [wonPrize, setWonPrize] = useState<Prize | null>(null);
 
   useEffect(() => {
-    console.log('SpinGamePage mounted. TenantID:', tenantId);
-    console.log('Available tenants:', tenants);
+    const fetchGameData = async () => {
+      if (!tenantId) {
+        setError('No tenant ID provided');
+        setLoading(false);
+        return;
+      }
 
-    if (!tenantId) {
-      console.warn('No tenantId provided in URL');
-      setLoading(false);
-      return;
-    }
+      try {
+        console.log('Fetching game data for tenant:', tenantId);
+        const response = await axios.get(`${API_URL}/spin/config/${tenantId}`);
+        console.log('Game data received:', response.data);
 
-    // Find Tenant
-    const foundTenant = tenants.find(t => t.id === tenantId);
-    console.log('Found tenant:', foundTenant);
+        const { tenant, prizes } = response.data;
 
-    if (foundTenant) {
-      setActiveTenant(foundTenant);
-      setActivePrizes(getTenantPrizes(foundTenant.id).filter(p => p.status === 'Active'));
-    } else {
-      console.warn(`Tenant with ID ${tenantId} not found`);
-    }
-    setLoading(false);
-  }, [tenantId, tenants, getTenantPrizes]);
+        // Convert the minimal tenant data to our Tenant type
+        const tenantData: Tenant = {
+          id: tenantId,
+          name: tenant.name,
+          ownerName: '',
+          email: '',
+          status: 'Active',
+          plan: 'Starter',
+          nextBillingDate: '',
+          logo: tenant.logo || '',
+          primaryColor: tenant.primaryColor || '#2bbdee'
+        };
+
+        setActiveTenant(tenantData);
+        setActivePrizes(prizes || []);
+        setLoading(false);
+      } catch (err: any) {
+        console.error('Error fetching game data:', err);
+        setError(err.response?.data?.error || 'Failed to load game');
+        setLoading(false);
+      }
+    };
+
+    fetchGameData();
+  }, [tenantId]);
 
   // Fallback if no prizes exist
   const displayPrizes = activePrizes.length > 0 ? activePrizes : [
@@ -92,11 +112,11 @@ const SpinGamePage: React.FC = () => {
     return `M 50 50 L ${x1} ${y1} A ${radius} ${radius} 0 ${largeArc} 1 ${x2} ${y2} Z`;
   };
 
-  if (loading) return <div className="h-screen flex items-center justify-center">Loading...</div>;
+  if (loading) return <div className="h-screen flex items-center justify-center"><div className="text-lg">Loading game...</div></div>;
 
-  if (!activeTenant) return (
+  if (error || !activeTenant) return (
     <div className="h-screen flex flex-col items-center justify-center gap-4 text-center p-4">
-      <h1 className="text-2xl font-bold">Game Not Found</h1>
+      <h1 className="text-2xl font-bold">{error || 'Game Not Found'}</h1>
       <p>Please check the link or contact the business.</p>
       <Link to="/" className="text-primary hover:underline">Go Home</Link>
     </div>
