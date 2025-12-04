@@ -146,7 +146,15 @@ export const tenantAPI = {
         return response.data;
     },
 
-    update: async (data: { name?: string; ownerName?: string; logo?: string; primaryColor?: string }) => {
+    update: async (data: {
+        name?: string;
+        ownerName?: string;
+        logo?: string;
+        primaryColor?: string;
+        secondaryColor?: string;
+        backgroundColor?: string;
+        textColor?: string;
+    }) => {
         const response = await api.put('/tenant', data);
         return response.data;
     }

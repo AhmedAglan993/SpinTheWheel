@@ -26,7 +26,7 @@ router.get('/', authenticate, async (req: AuthRequest, res: Response) => {
 // PUT /api/tenant - Update tenant settings
 router.put('/', authenticate, async (req: AuthRequest, res: Response) => {
     try {
-        const { name, ownerName, logo, primaryColor } = req.body;
+        const { name, ownerName, logo, primaryColor, secondaryColor, backgroundColor, textColor } = req.body;
 
         const tenant = await prisma.tenant.update({
             where: { id: req.tenant!.tenantId },
@@ -34,7 +34,10 @@ router.put('/', authenticate, async (req: AuthRequest, res: Response) => {
                 name,
                 ownerName,
                 logo,
-                primaryColor
+                primaryColor,
+                secondaryColor,
+                backgroundColor,
+                textColor
             }
         });
 
