@@ -4,11 +4,23 @@ import { authenticate, AuthRequest } from '../middleware/auth';
 
 const router = Router();
 
-// GET /api/prizes - Get all prizes for current tenant
+// GET /api/prizes - Get all prizes for current tenant (optionally filtered by project)
 router.get('/', authenticate, async (req: AuthRequest, res: Response) => {
     try {
+        const { projectId } = req.query;
+
+        const whereClause: any = { tenantId: req.tenant!.tenantId };
+
+        if (projectId) {
+            // Filter by specific project
+            whereClause.projectId = String(projectId);
+        } else {
+            // Default: show prizes not assigned to any project
+            whereClause.projectId = null;
+        }
+
         const prizes = await prisma.prize.findMany({
-            where: { tenantId: req.tenant!.tenantId },
+            where: whereClause,
             orderBy: { createdAt: 'desc' }
         });
 
@@ -22,15 +34,27 @@ router.get('/', authenticate, async (req: AuthRequest, res: Response) => {
 // POST /api/prizes - Create new prize
 router.post('/', authenticate, async (req: AuthRequest, res: Response) => {
     try {
-        const { name, type, description, status = 'Active' } = req.body;
+        const { name, type, description, status = 'Active', projectId } = req.body;
 
         if (!name || !type || !description) {
             return res.status(400).json({ error: 'Missing required fields' });
         }
 
+        // Verify project belongs to tenant if provided
+        if (projectId) {
+            const project = await prisma.project.findFirst({
+                where: { id: projectId, tenantId: req.tenant!.tenantId }
+            });
+
+            if (!project) {
+                return res.status(404).json({ error: 'Project not found' });
+            }
+        }
+
         const prize = await prisma.prize.create({
             data: {
                 tenantId: req.tenant!.tenantId,
+                projectId: projectId || null,
                 name,
                 type,
                 description,
