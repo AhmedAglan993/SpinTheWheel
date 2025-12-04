@@ -341,3 +341,5 @@ For production deployment, you'll need to:
 5. Change `JWT_SECRET` to a secure random string
 
 Good luck with your Spin the Wheel application! 🎉
+#   U p d a t e d  
+ 
