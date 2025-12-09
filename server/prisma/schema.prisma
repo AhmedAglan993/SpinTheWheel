@@ -20,6 +20,9 @@ model Tenant {
   status          String   @default("Active") // Active, Trial, Suspended
   logo            String?
   primaryColor    String   @default("#2bbdee")
+  secondaryColor  String   @default("#1e293b") // Secondary accent color
+  backgroundColor String   @default("#f8fafc") // Background color
+  textColor       String   @default("#0f172a") // Text color
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
