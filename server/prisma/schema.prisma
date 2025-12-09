@@ -29,9 +29,10 @@ model Tenant {
   // Relations
   prizes          Prize[]
   users           User[]
-  spinConfig      SpinConfiguration?
+  spinConfig      SpinConfiguration[]
   spinHistory     SpinHistory[]
   contactRequests ContactRequest[]
+  projects        Project[]
 
   @@map("tenants")
 }
@@ -40,6 +41,7 @@ model Tenant {
 model Prize {
   id          String   @id @default(uuid())
   tenantId    String
+  projectId   String?  // Optional: prizes can belong to specific projects
   name        String
   type        String   // Food Item, Discount, Merchandise, Voucher
   description String
@@ -49,6 +51,7 @@ model Prize {
 
   // Relations
   tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  project     Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
   @@unique([tenantId, name])
   @@map("prizes")
@@ -77,7 +80,8 @@ model User {
 // Spin wheel customization per tenant
 model SpinConfiguration {
   id                String   @id @default(uuid())
-  tenantId          String   @unique
+  tenantId          String
+  projectId         String?  @unique // Each project can have one config
   wheelColors       String[] // Array of color codes
   spinDuration      Int      @default(5000) // milliseconds
   soundEnabled      Boolean  @default(true)
@@ -88,6 +92,7 @@ model SpinConfiguration {
 
   // Relations
   tenant            Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  project           Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
   @@map("spin_configurations")
 }
@@ -96,6 +101,7 @@ model SpinConfiguration {
 model SpinHistory {
   id         String   @id @default(uuid())
   tenantId   String
+  projectId  String?  // Optional: track which project this spin belongs to
   userName   String?  // Name of person who spun
   userEmail  String?  // Email of person who spun
   prizeWon   String   // Name of prize won
@@ -103,6 +109,7 @@ model SpinHistory {
 
   // Relations
   tenant     Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  project    Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
   @@map("spin_history")
 }
@@ -127,4 +134,34 @@ model ContactRequest {
   tenant            Tenant?  @relation(fields: [tenantId], references: [id], onDelete: SetNull)
 
   @@map("contact_requests")
+}
+
+// Project/Event model for the Agency workflow
+model Project {
+  id          String    @id @default(uuid())
+  tenantId    String
+  name        String    // e.g. "Summer Trade Show 2025"
+  slug        String?   // Optional URL-friendly identifier
+  
+  // Status & Workflow
+  status      String    @default("Draft") // Draft, Quoted, PendingPayment, Active, Completed, Archived
+  isPaid      Boolean   @default(false)
+  price       Float?    // The quoted price for this project
+  
+  // Event Constraints
+  startDate   DateTime? // When the event starts
+  endDate     DateTime? // When the event ends
+  spinLimit   Int?      // Maximum number of spins allowed
+  currentSpins Int      @default(0) // Current spin count
+  
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  // Relations
+  tenant      Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  spinConfig  SpinConfiguration?
+  prizes      Prize[]
+  spinHistory SpinHistory[]
+
+  @@map("projects")
 }
