@@ -7,9 +7,9 @@ import DashboardPage from './pages/admin/DashboardPage';
 import SettingsPage from './pages/admin/SettingsPage';
 import PrizesPage from './pages/admin/PrizesPage';
 import UsersPage from './pages/admin/UsersPage';
-import ProjectsPage from './pages/admin/ProjectsPage';
-import SubscriptionPage from './pages/admin/SubscriptionPage';
+import ContactRequestsPage from './pages/admin/ContactRequestsPage';
 import SpinGamePage from './pages/SpinGamePage';
+import DemoSpinPage from './pages/DemoSpinPage';
 import { useData } from './contexts/DataContext';
 
 // Protected Route Component
@@ -27,6 +27,9 @@ const App: React.FC = () => {
       <Routes>
         {/* Marketing Site */}
         <Route path="/" element={<LandingPage />} />
+
+        {/* Demo */}
+        <Route path="/demo" element={<DemoSpinPage />} />
 
         {/* Authentication */}
         <Route path="/login" element={<LoginPage />} />
@@ -46,8 +49,7 @@ const App: React.FC = () => {
           <Route path="settings" element={<SettingsPage />} />
           <Route path="prizes" element={<PrizesPage />} />
           <Route path="users" element={<UsersPage />} />
-          <Route path="projects" element={<ProjectsPage />} />
-          <Route path="subscription" element={<SubscriptionPage />} />
+          <Route path="contacts" element={<ContactRequestsPage />} />
         </Route>
 
         {/* Catch all */}

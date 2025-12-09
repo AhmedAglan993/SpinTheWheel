@@ -9,7 +9,7 @@ const router = Router();
 // POST /api/auth/signup - Register new tenant
 router.post('/signup', async (req, res: Response) => {
     try {
-        const { businessName, email, password, plan = 'Starter' } = req.body;
+        const { businessName, email, password } = req.body;
 
         // Validate input
         if (!businessName || !email || !password) {
@@ -28,10 +28,6 @@ router.post('/signup', async (req, res: Response) => {
         // Hash password
         const hashedPassword = await hashPassword(password);
 
-        // Calculate next billing date (30 days from now)
-        const nextBillingDate = new Date();
-        nextBillingDate.setDate(nextBillingDate.getDate() + 30);
-
         // Create tenant
         const tenant = await prisma.tenant.create({
             data: {
@@ -40,21 +36,8 @@ router.post('/signup', async (req, res: Response) => {
                 email,
                 password: hashedPassword,
                 status: 'Active',
-                plan,
-                nextBillingDate,
                 logo: `https://placehold.co/400x400/2bbdee/ffffff?text=${businessName.charAt(0)}`,
                 primaryColor: '#2bbdee'
-            }
-        });
-
-        // Create default subscription
-        await prisma.subscription.create({
-            data: {
-                tenantId: tenant.id,
-                plan,
-                status: 'Active',
-                currentPeriodStart: new Date(),
-                currentPeriodEnd: nextBillingDate
             }
         });
 

@@ -18,26 +18,17 @@ model Tenant {
   email           String   @unique
   password        String   // Hashed password
   status          String   @default("Active") // Active, Trial, Suspended
-  plan            String   @default("Starter") // Starter, Growth, Enterprise
-  nextBillingDate DateTime
   logo            String?
   primaryColor    String   @default("#2bbdee")
-  secondaryColor  String   @default("#1e293b") // Secondary accent color
-  backgroundColor String   @default("#f8fafc") // Background color
-  textColor       String   @default("#0f172a") // Text color
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
   // Relations
   prizes          Prize[]
   users           User[]
-  spinConfig      SpinConfiguration[]
+  spinConfig      SpinConfiguration?
   spinHistory     SpinHistory[]
-  subscription    Subscription?
-  projects        Project[]
-
-  // Agency Workflow
-  onboardingStatus String @default("Pending") // Pending, Contacted, Quoted, Approved
+  contactRequests ContactRequest[]
 
   @@map("tenants")
 }
@@ -46,7 +37,6 @@ model Tenant {
 model Prize {
   id          String   @id @default(uuid())
   tenantId    String
-  projectId   String?  // Optional: prizes can belong to specific projects
   name        String
   type        String   // Food Item, Discount, Merchandise, Voucher
   description String
@@ -56,7 +46,6 @@ model Prize {
 
   // Relations
   tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  project     Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
   @@unique([tenantId, name])
   @@map("prizes")
@@ -85,8 +74,7 @@ model User {
 // Spin wheel customization per tenant
 model SpinConfiguration {
   id                String   @id @default(uuid())
-  tenantId          String   // Changed from @unique to allow multiple configs
-  projectId         String?  @unique // Each project can have one config
+  tenantId          String   @unique
   wheelColors       String[] // Array of color codes
   spinDuration      Int      @default(5000) // milliseconds
   soundEnabled      Boolean  @default(true)
@@ -97,7 +85,6 @@ model SpinConfiguration {
 
   // Relations
   tenant            Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  project           Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
   @@map("spin_configurations")
 }
@@ -106,7 +93,6 @@ model SpinConfiguration {
 model SpinHistory {
   id         String   @id @default(uuid())
   tenantId   String
-  projectId  String?  // Optional: track which project this spin belongs to
   userName   String?  // Name of person who spun
   userEmail  String?  // Email of person who spun
   prizeWon   String   // Name of prize won
@@ -114,73 +100,28 @@ model SpinHistory {
 
   // Relations
   tenant     Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  project    Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
   @@map("spin_history")
 }
 
-// Subscription and billing information
-model Subscription {
-  id              String   @id @default(uuid())
-  tenantId        String   @unique
-  plan            String   // Starter, Growth, Enterprise
-  status          String   @default("Active") // Active, Cancelled, PastDue
-  currentPeriodStart DateTime
-  currentPeriodEnd   DateTime
-  cancelAtPeriodEnd  Boolean @default(false)
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+// Contact requests for custom experiences
+model ContactRequest {
+  id                String   @id @default(uuid())
+  tenantId          String?  // Optional - for logged-in users, null for public inquiries
+  name              String
+  email             String
+  phone             String?
+  message           String
+  requestType       String   // New Experience, Customization, Support
+  status            String   @default("Pending") // Pending, In Review, Quoted, Accepted, Rejected
+  estimatedCost     Float?
+  estimatedTimeframe String?
+  adminNotes        String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
 
   // Relations
-  tenant          Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  invoices        Invoice[]
+  tenant            Tenant?  @relation(fields: [tenantId], references: [id], onDelete: SetNull)
 
-  @@map("subscriptions")
-}
-
-// Invoice records
-model Invoice {
-  id             String   @id @default(uuid())
-  subscriptionId String
-  amount         Float
-  currency       String   @default("USD")
-  status         String   // Paid, Pending, Failed
-  dueDate        DateTime
-  paidDate       DateTime?
-  createdAt      DateTime @default(now())
-
-  // Relations
-  subscription   Subscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
-
-  @@map("invoices")
-}
-
-// Project/Event model for the Agency workflow
-model Project {
-  id          String    @id @default(uuid())
-  tenantId    String
-  name        String    // e.g. "Summer Trade Show 2025"
-  slug        String?   // Optional URL-friendly identifier
-  
-  // Status & Workflow
-  status      String    @default("Draft") // Draft, Quoted, PendingPayment, Active, Completed, Archived
-  isPaid      Boolean   @default(false)
-  price       Float?    // The quoted price for this project
-  
-  // Event Constraints
-  startDate   DateTime? // When the event starts
-  endDate     DateTime? // When the event ends
-  spinLimit   Int?      // Maximum number of spins allowed
-  currentSpins Int      @default(0) // Current spin count
-  
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-
-  // Relations
-  tenant      Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  spinConfig  SpinConfiguration?
-  prizes      Prize[]
-  spinHistory SpinHistory[]
-
-  @@map("projects")
+  @@map("contact_requests")
 }

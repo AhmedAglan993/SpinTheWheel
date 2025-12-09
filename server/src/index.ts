@@ -5,7 +5,7 @@ import authRoutes from './routes/auth';
 import prizesRoutes from './routes/prizes';
 import usersRoutes from './routes/users';
 import spinRoutes from './routes/spin';
-import subscriptionRoutes from './routes/subscription';
+import contactRoutes from './routes/contact';
 import tenantRoutes from './routes/tenant';
 import projectsRoutes from './routes/projects';
 
@@ -37,7 +37,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/prizes', prizesRoutes);
 app.use('/api/users', usersRoutes);
 app.use('/api/spin', spinRoutes);
-app.use('/api/subscription', subscriptionRoutes);
+app.use('/api/contact', contactRoutes);
 app.use('/api/tenant', tenantRoutes);
 app.use('/api/projects', projectsRoutes);
 
@@ -56,7 +56,7 @@ app.get('/', (req, res) => {
             prizes: '/api/prizes',
             users: '/api/users',
             spin: '/api/spin',
-            subscription: '/api/subscription',
+            contact: '/api/contact',
             tenant: '/api/tenant'
         }
     });
