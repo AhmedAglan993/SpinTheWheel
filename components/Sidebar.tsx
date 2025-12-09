@@ -89,11 +89,11 @@ const Sidebar: React.FC = () => {
           <div className="px-3 py-2 mt-2 text-xs font-semibold text-slate-400 uppercase tracking-wider">
             Account
           </div>
-          <NavLink to="/admin/subscription" className={linkClass}>
+          <NavLink to="/admin/contacts" className={linkClass}>
             {({ isActive }) => (
               <>
-                <span className={iconClass(isActive)}>credit_card</span>
-                Billing
+                <span className={iconClass(isActive)}>contact_mail</span>
+                Contact Requests
               </>
             )}
           </NavLink>
