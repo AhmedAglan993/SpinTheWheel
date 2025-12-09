@@ -41,7 +41,7 @@ router.post('/', authenticate, async (req: AuthRequest, res: Response) => {
                 endDate: endDate ? new Date(endDate) : undefined,
                 spinLimit: spinLimit ? parseInt(spinLimit) : undefined,
                 price: price ? parseFloat(price) : undefined,
-                status: 'Draft'
+                status: 'Active'  // Active by default so spin links work immediately
             }
         });
 
