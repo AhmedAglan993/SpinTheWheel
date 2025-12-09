@@ -74,16 +74,6 @@ router.get('/config/:id', async (req, res: Response) => {
                     isAvailable: prize.isUnlimited || (prize.quantity !== null && prize.quantity > 0)
                 }));
 
-            // Debug logging
-            console.log('=== PRIZE FILTERING DEBUG ===');
-            console.log('Total prizes fetched:', prizes.length);
-            console.log('Prizes after filtering:', availablePrizes.length);
-            prizes.forEach(p => {
-                console.log(`Prize: ${p.name}, isUnlimited: ${p.isUnlimited}, quantity: ${p.quantity}, exhaustionBehavior: ${p.exhaustionBehavior}, status: ${p.status}`);
-            });
-            console.log('Available prizes:', availablePrizes.map(p => p.name));
-            console.log('============================');
-
             return res.json({
                 tenant: {
                     name: project.tenant.name,

@@ -67,6 +67,9 @@ const PublicSpinPage: React.FC = () => {
                     userEmail: userInfo.email,
                     prizeWon: prize.name
                 });
+
+                // Reload prizes to get updated quantities and remove exhausted prizes
+                await loadProjectData();
             } catch (err) {
                 console.error('Failed to record spin:', err);
             }
