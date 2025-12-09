@@ -1,15 +1,17 @@
 import React from 'react';
 import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import LandingPage from './pages/LandingPage';
-import { LoginPage, SignupPage } from './pages/AuthPages';
+import { LoginPage } from './pages/AuthPages';
 import AdminLayout from './pages/admin/AdminLayout';
 import DashboardPage from './pages/admin/DashboardPage';
 import SettingsPage from './pages/admin/SettingsPage';
 import PrizesPage from './pages/admin/PrizesPage';
 import UsersPage from './pages/admin/UsersPage';
 import ContactRequestsPage from './pages/admin/ContactRequestsPage';
-import SpinGamePage from './pages/SpinGamePage';
+import ProjectsPage from './pages/admin/ProjectsPage';
 import DemoSpinPage from './pages/DemoSpinPage';
+import ContactFormPage from './pages/ContactFormPage';
+import PublicSpinPage from './pages/PublicSpinPage';
 import { useData } from './contexts/DataContext';
 
 // Protected Route Component
@@ -31,14 +33,16 @@ const App: React.FC = () => {
         {/* Demo */}
         <Route path="/demo" element={<DemoSpinPage />} />
 
-        {/* Authentication */}
+        {/* Contact Form - Public */}
+        <Route path="/contact" element={<ContactFormPage />} />
+
+        {/* Authentication - Admin Only */}
         <Route path="/login" element={<LoginPage />} />
-        <Route path="/signup" element={<SignupPage />} />
 
-        {/* The Public Game Link */}
-        <Route path="/play/:tenantId" element={<SpinGamePage />} />
+        {/* Public Spin Links - No Auth Required */}
+        <Route path="/spin/:projectId" element={<PublicSpinPage />} />
 
-        {/* Client Admin Dashboard (Protected) */}
+        {/* Admin Dashboard (Protected) */}
         <Route path="/admin" element={
           <ProtectedRoute>
             <AdminLayout />
@@ -46,6 +50,7 @@ const App: React.FC = () => {
         }>
           <Route index element={<Navigate to="/admin/dashboard" replace />} />
           <Route path="dashboard" element={<DashboardPage />} />
+          <Route path="projects" element={<ProjectsPage />} />
           <Route path="settings" element={<SettingsPage />} />
           <Route path="prizes" element={<PrizesPage />} />
           <Route path="users" element={<UsersPage />} />

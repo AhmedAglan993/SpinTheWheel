@@ -129,6 +129,17 @@ const ProjectsPage: React.FC = () => {
                                     </td>
                                     <td className="p-4">
                                         <div className="flex gap-2">
+                                            <button
+                                                onClick={() => {
+                                                    const link = `${window.location.origin}/#/spin/${project.id}`;
+                                                    navigator.clipboard.writeText(link);
+                                                    alert('Link copied to clipboard!');
+                                                }}
+                                                className="p-1.5 text-slate-500 hover:text-green-500 hover:bg-green-500/10 rounded-md transition-colors"
+                                                title="Copy Spin Link"
+                                            >
+                                                <span className="material-symbols-outlined !text-lg">link</span>
+                                            </button>
                                             <button className="p-1.5 text-slate-500 hover:text-primary hover:bg-primary/10 rounded-md transition-colors" title="Edit">
                                                 <span className="material-symbols-outlined !text-lg">edit</span>
                                             </button>
