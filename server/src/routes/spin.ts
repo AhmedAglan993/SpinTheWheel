@@ -36,9 +36,17 @@ router.get('/config/:id', async (req, res: Response) => {
                 return res.status(403).json({ error: 'This event has reached its spin limit.' });
             }
 
-            // Get project prizes
+
+            // Get project prizes (project-specific OR tenant-level)
             const prizes = await prisma.prize.findMany({
-                where: { projectId: project.id, status: 'Active' }
+                where: {
+                    tenantId: project.tenantId,
+                    OR: [
+                        { projectId: project.id },
+                        { projectId: null }
+                    ],
+                    status: 'Active'
+                }
             });
 
             return res.json({
