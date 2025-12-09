@@ -17,29 +17,12 @@ async function seed() {
                 email: 'demo@example.com',
                 password: hashedPassword,
                 status: 'Active',
-                plan: 'Growth',
-                nextBillingDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
                 logo: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDFdq24kBzGT70B2mU4hnGiMLSSS_7-bOVcC0XCUz7JUlscw6Znhe1JgRqeAmpApyE41WV-78xKOju3C0OGwpzvTfSEVT-DEZ6zuAoi4BnaUQuIRC_UYEyz0uyueOHe1HH5eKSTInthr7QJAOpbTWbt8iHATRu3bRk9N3N3wVXxX_7_LMqLO2aGdFfK3knW7ZUhUAfb0g9nCRQxIulNWBSduu57hQiclDYePyxhRc4eoN5wcfiEjE1cFo2uzaLFBMlPzzGw3Bz4Vso',
                 primaryColor: '#2bbdee'
             }
         });
 
         console.log('✅ Created demo tenant:', demoTenant.email);
-
-        // Create subscription for demo tenant
-        await prisma.subscription.upsert({
-            where: { tenantId: demoTenant.id },
-            update: {},
-            create: {
-                tenantId: demoTenant.id,
-                plan: 'Growth',
-                status: 'Active',
-                currentPeriodStart: new Date(),
-                currentPeriodEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
-            }
-        });
-
-        console.log('✅ Created subscription for demo tenant');
 
         // Create prizes
         const prizes = [
@@ -97,16 +80,15 @@ async function seed() {
 
         console.log(`✅ Created ${users.length} sample users`);
 
-        // Create spin configuration (default tenant config, not project-specific)
-        const existingConfig = await prisma.spinConfiguration.findFirst({
-            where: { tenantId: demoTenant.id, projectId: null }
+        // Create spin configuration
+        const existingConfig = await prisma.spinConfiguration.findUnique({
+            where: { tenantId: demoTenant.id }
         });
 
         if (!existingConfig) {
             await prisma.spinConfiguration.create({
                 data: {
                     tenantId: demoTenant.id,
-                    projectId: null,
                     wheelColors: ['#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A', '#98D8C8', '#F7DC6F'],
                     spinDuration: 5000,
                     soundEnabled: true,
