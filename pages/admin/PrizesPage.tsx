@@ -11,7 +11,10 @@ const PrizesPage: React.FC = () => {
     name: '',
     type: 'Voucher',
     description: '',
-    status: 'Active'
+    status: 'Active',
+    isUnlimited: true,
+    quantity: 10,
+    exhaustionBehavior: 'exclude'
   });
 
   const handleAddPrize = async (e: React.FormEvent) => {
@@ -23,10 +26,21 @@ const PrizesPage: React.FC = () => {
         name: newPrize.name || 'New Prize',
         type: newPrize.type as any,
         description: newPrize.description || '',
-        status: 'Active'
+        status: 'Active',
+        isUnlimited: newPrize.isUnlimited ?? true,
+        quantity: newPrize.isUnlimited ? undefined : newPrize.quantity,
+        exhaustionBehavior: newPrize.exhaustionBehavior || 'exclude'
       });
       setShowForm(false);
-      setNewPrize({ name: '', type: 'Voucher', description: '', status: 'Active' });
+      setNewPrize({
+        name: '',
+        type: 'Voucher',
+        description: '',
+        status: 'Active',
+        isUnlimited: true,
+        quantity: 10,
+        exhaustionBehavior: 'exclude'
+      });
     } catch (error) {
       console.error('Failed to add prize:', error);
       alert('Failed to add prize. Please try again.');
@@ -79,6 +93,46 @@ const PrizesPage: React.FC = () => {
                 value={newPrize.description} onChange={e => setNewPrize({ ...newPrize, description: e.target.value })}
               />
             </div>
+
+            {/* Quantity Management */}
+            <div className="flex-1 w-full">
+              <label className="text-xs font-bold uppercase text-slate-500 mb-1 block">Availability</label>
+              <select
+                className="w-full p-2 rounded-lg border border-slate-300 dark:border-slate-600 dark:bg-slate-700"
+                value={newPrize.isUnlimited ? 'unlimited' : 'numbered'}
+                onChange={e => setNewPrize({ ...newPrize, isUnlimited: e.target.value === 'unlimited' })}
+              >
+                <option value="unlimited">Unlimited</option>
+                <option value="numbered">Numbered</option>
+              </select>
+            </div>
+
+            {!newPrize.isUnlimited && (
+              <>
+                <div className="flex-1 w-full">
+                  <label className="text-xs font-bold uppercase text-slate-500 mb-1 block">Quantity</label>
+                  <input
+                    type="number" min="0" required
+                    className="w-full p-2 rounded-lg border border-slate-300 dark:border-slate-600 dark:bg-slate-700"
+                    value={newPrize.quantity || 0}
+                    onChange={e => setNewPrize({ ...newPrize, quantity: parseInt(e.target.value) })}
+                  />
+                </div>
+                <div className="flex-1 w-full">
+                  <label className="text-xs font-bold uppercase text-slate-500 mb-1 block">When Exhausted</label>
+                  <select
+                    className="w-full p-2 rounded-lg border border-slate-300 dark:border-slate-600 dark:bg-slate-700"
+                    value={newPrize.exhaustionBehavior}
+                    onChange={e => setNewPrize({ ...newPrize, exhaustionBehavior: e.target.value as any })}
+                  >
+                    <option value="exclude">Exclude from wheel</option>
+                    <option value="show_unavailable">Show as unavailable</option>
+                    <option value="mark_inactive">Mark as inactive</option>
+                  </select>
+                </div>
+              </>
+            )}
+
             <button type="submit" className="px-6 py-2 bg-green-600 text-white font-bold rounded-lg hover:bg-green-700">Save</button>
           </form>
         </div>
@@ -93,18 +147,28 @@ const PrizesPage: React.FC = () => {
                 <th className="px-6 py-4 text-xs font-medium uppercase tracking-wider text-slate-500 dark:text-slate-400">Prize Name</th>
                 <th className="px-6 py-4 text-xs font-medium uppercase tracking-wider text-slate-500 dark:text-slate-400">Prize Type</th>
                 <th className="px-6 py-4 text-xs font-medium uppercase tracking-wider text-slate-500 dark:text-slate-400">Value/Description</th>
+                <th className="px-6 py-4 text-xs font-medium uppercase tracking-wider text-slate-500 dark:text-slate-400">Quantity</th>
                 <th className="px-6 py-4 text-xs font-medium uppercase tracking-wider text-slate-500 dark:text-slate-400">Status</th>
                 <th className="px-6 py-4 text-xs font-medium uppercase tracking-wider text-slate-500 dark:text-slate-400 text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
               {prizes.length === 0 ? (
-                <tr><td colSpan={5} className="p-8 text-center text-slate-500">No prizes added yet.</td></tr>
+                <tr><td colSpan={6} className="p-8 text-center text-slate-500">No prizes added yet.</td></tr>
               ) : prizes.map((prize) => (
                 <tr key={prize.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-900 dark:text-white">{prize.name}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500 dark:text-slate-400">{prize.type}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500 dark:text-slate-400">{prize.description}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500 dark:text-slate-400">
+                    {prize.isUnlimited ? (
+                      <span className="text-green-600 dark:text-green-400 font-medium">Unlimited</span>
+                    ) : (
+                      <span className="font-medium">
+                        {prize.quantity ?? 0} / {prize.initialQuantity ?? 0}
+                      </span>
+                    )}
+                  </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm">
                     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${prize.status === 'Active' ? 'bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-300' : 'bg-slate-100 text-slate-800 dark:bg-slate-700 dark:text-slate-300'
                       }`}>

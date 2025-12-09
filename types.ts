@@ -17,6 +17,13 @@ export interface Prize {
   type: 'Food Item' | 'Discount' | 'Merchandise' | 'Voucher';
   description: string;
   status: 'Active' | 'Inactive';
+
+  // Quantity Management
+  isUnlimited: boolean;
+  quantity?: number | null;
+  initialQuantity?: number | null;
+  exhaustionBehavior: 'exclude' | 'show_unavailable' | 'mark_inactive';
+  isAvailable?: boolean; // Added by server for spin config
 }
 
 export interface Tenant {

@@ -49,6 +49,26 @@ router.get('/config/:id', async (req, res: Response) => {
                 }
             });
 
+            // Filter and annotate prizes based on availability
+            const availablePrizes = prizes
+                .filter(prize => {
+                    // Always include unlimited prizes
+                    if (prize.isUnlimited) return true;
+
+                    // Include numbered prizes with quantity > 0
+                    if (prize.quantity && prize.quantity > 0) return true;
+
+                    // Include exhausted prizes if set to show_unavailable
+                    if (prize.quantity === 0 && prize.exhaustionBehavior === 'show_unavailable') return true;
+
+                    // Exclude all other cases (exhausted with exclude or mark_inactive)
+                    return false;
+                })
+                .map(prize => ({
+                    ...prize,
+                    isAvailable: prize.isUnlimited || (prize.quantity !== null && prize.quantity > 0)
+                }));
+
             return res.json({
                 tenant: {
                     name: project.tenant.name,
@@ -59,7 +79,7 @@ router.get('/config/:id', async (req, res: Response) => {
                     textColor: project.tenant.textColor
                 },
                 config: project.spinConfig,
-                prizes,
+                prizes: availablePrizes,
                 projectId: project.id
             });
         }
@@ -100,6 +120,26 @@ router.get('/config/:id', async (req, res: Response) => {
             }
         });
 
+        // Filter and annotate prizes based on availability
+        const availablePrizes = prizes
+            .filter(prize => {
+                // Always include unlimited prizes
+                if (prize.isUnlimited) return true;
+
+                // Include numbered prizes with quantity > 0
+                if (prize.quantity && prize.quantity > 0) return true;
+
+                // Include exhausted prizes if set to show_unavailable
+                if (prize.quantity === 0 && prize.exhaustionBehavior === 'show_unavailable') return true;
+
+                // Exclude all other cases
+                return false;
+            })
+            .map(prize => ({
+                ...prize,
+                isAvailable: prize.isUnlimited || (prize.quantity !== null && prize.quantity > 0)
+            }));
+
         res.json({
             tenant: {
                 name: tenant.name,
@@ -110,7 +150,7 @@ router.get('/config/:id', async (req, res: Response) => {
                 textColor: tenant.textColor
             },
             config,
-            prizes
+            prizes: availablePrizes
         });
     } catch (error) {
         console.error('Get spin config error:', error);
@@ -202,6 +242,18 @@ router.post('/record', async (req, res: Response) => {
             return res.status(400).json({ error: 'Missing required fields' });
         }
 
+        // Find the prize that was won to check if it's numbered
+        const wonPrize = await prisma.prize.findFirst({
+            where: {
+                tenantId,
+                name: prizeWon,
+                OR: [
+                    { projectId: projectId || null },
+                    { projectId: null }
+                ]
+            }
+        });
+
         // Increment project spin count if projectId is provided
         if (projectId) {
             await prisma.project.update({
@@ -210,6 +262,7 @@ router.post('/record', async (req, res: Response) => {
             });
         }
 
+        // Record the spin
         const record = await prisma.spinHistory.create({
             data: {
                 tenantId,
@@ -219,6 +272,22 @@ router.post('/record', async (req, res: Response) => {
                 prizeWon
             }
         });
+
+        // Handle numbered prize quantity decrement
+        if (wonPrize && !wonPrize.isUnlimited && wonPrize.quantity !== null && wonPrize.quantity > 0) {
+            const updatedPrize = await prisma.prize.update({
+                where: { id: wonPrize.id },
+                data: { quantity: { decrement: 1 } }
+            });
+
+            // Check if prize is now exhausted and should be marked inactive
+            if (updatedPrize.quantity === 0 && updatedPrize.exhaustionBehavior === 'mark_inactive') {
+                await prisma.prize.update({
+                    where: { id: wonPrize.id },
+                    data: { status: 'Inactive' }
+                });
+            }
+        }
 
         res.status(201).json(record);
     } catch (error) {

@@ -46,6 +46,13 @@ model Prize {
   type        String   // Food Item, Discount, Merchandise, Voucher
   description String
   status      String   @default("Active") // Active, Inactive
+  
+  // Quantity Management
+  isUnlimited        Boolean  @default(true)  // If true, prize is always available
+  quantity           Int?     // Current available quantity (null for unlimited)
+  initialQuantity    Int?     // Original quantity for analytics
+  exhaustionBehavior String   @default("exclude") // "exclude", "show_unavailable", "mark_inactive"
+  
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 

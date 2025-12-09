@@ -34,10 +34,26 @@ router.get('/', authenticate, async (req: AuthRequest, res: Response) => {
 // POST /api/prizes - Create new prize
 router.post('/', authenticate, async (req: AuthRequest, res: Response) => {
     try {
-        const { name, type, description, status = 'Active', projectId } = req.body;
+        const {
+            name,
+            type,
+            description,
+            status = 'Active',
+            projectId,
+            isUnlimited = true,
+            quantity,
+            exhaustionBehavior = 'exclude'
+        } = req.body;
 
         if (!name || !type || !description) {
             return res.status(400).json({ error: 'Missing required fields' });
+        }
+
+        // Validate quantity for numbered prizes
+        if (!isUnlimited) {
+            if (!quantity || quantity <= 0) {
+                return res.status(400).json({ error: 'Quantity must be greater than 0 for numbered prizes' });
+            }
         }
 
         // Verify project belongs to tenant if provided
@@ -58,7 +74,11 @@ router.post('/', authenticate, async (req: AuthRequest, res: Response) => {
                 name,
                 type,
                 description,
-                status
+                status,
+                isUnlimited,
+                quantity: isUnlimited ? null : quantity,
+                initialQuantity: isUnlimited ? null : quantity,
+                exhaustionBehavior
             }
         });
 
@@ -73,7 +93,7 @@ router.post('/', authenticate, async (req: AuthRequest, res: Response) => {
 router.put('/:id', authenticate, async (req: AuthRequest, res: Response) => {
     try {
         const { id } = req.params;
-        const { name, type, description, status } = req.body;
+        const { name, type, description, status, isUnlimited, quantity, exhaustionBehavior } = req.body;
 
         // Verify prize belongs to tenant
         const existingPrize = await prisma.prize.findFirst({
@@ -87,9 +107,40 @@ router.put('/:id', authenticate, async (req: AuthRequest, res: Response) => {
             return res.status(404).json({ error: 'Prize not found' });
         }
 
+        // Validate quantity for numbered prizes
+        if (isUnlimited === false) {
+            if (quantity === undefined || quantity < 0) {
+                return res.status(400).json({ error: 'Quantity must be 0 or greater for numbered prizes' });
+            }
+        }
+
+        // Prepare update data
+        const updateData: any = {};
+        if (name !== undefined) updateData.name = name;
+        if (type !== undefined) updateData.type = type;
+        if (description !== undefined) updateData.description = description;
+        if (status !== undefined) updateData.status = status;
+        if (exhaustionBehavior !== undefined) updateData.exhaustionBehavior = exhaustionBehavior;
+
+        if (isUnlimited !== undefined) {
+            updateData.isUnlimited = isUnlimited;
+            if (isUnlimited) {
+                updateData.quantity = null;
+                updateData.initialQuantity = null;
+            }
+        }
+
+        if (quantity !== undefined && !updateData.isUnlimited) {
+            updateData.quantity = quantity;
+            // Update initialQuantity if new quantity is higher
+            if (existingPrize.initialQuantity === null || quantity > existingPrize.initialQuantity) {
+                updateData.initialQuantity = quantity;
+            }
+        }
+
         const prize = await prisma.prize.update({
             where: { id },
-            data: { name, type, description, status }
+            data: updateData
         });
 
         res.json(prize);
