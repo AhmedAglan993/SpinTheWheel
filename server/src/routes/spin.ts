@@ -55,13 +55,18 @@ router.get('/config/:id', async (req, res: Response) => {
                     // Always include unlimited prizes
                     if (prize.isUnlimited) return true;
 
-                    // Include numbered prizes with quantity > 0
-                    if (prize.quantity && prize.quantity > 0) return true;
+                    // For numbered prizes, check quantity
+                    if (!prize.isUnlimited) {
+                        // Include if quantity > 0
+                        if (prize.quantity !== null && prize.quantity > 0) return true;
 
-                    // Include exhausted prizes if set to show_unavailable
-                    if (prize.quantity === 0 && prize.exhaustionBehavior === 'show_unavailable') return true;
+                        // Include exhausted prizes (quantity = 0) if set to show_unavailable
+                        if (prize.quantity === 0 && prize.exhaustionBehavior === 'show_unavailable') return true;
 
-                    // Exclude all other cases (exhausted with exclude or mark_inactive)
+                        // Exclude exhausted prizes with 'exclude' or 'mark_inactive' behavior
+                        return false;
+                    }
+
                     return false;
                 })
                 .map(prize => ({
@@ -126,13 +131,18 @@ router.get('/config/:id', async (req, res: Response) => {
                 // Always include unlimited prizes
                 if (prize.isUnlimited) return true;
 
-                // Include numbered prizes with quantity > 0
-                if (prize.quantity && prize.quantity > 0) return true;
+                // For numbered prizes, check quantity
+                if (!prize.isUnlimited) {
+                    // Include if quantity > 0
+                    if (prize.quantity !== null && prize.quantity > 0) return true;
 
-                // Include exhausted prizes if set to show_unavailable
-                if (prize.quantity === 0 && prize.exhaustionBehavior === 'show_unavailable') return true;
+                    // Include exhausted prizes (quantity = 0) if set to show_unavailable
+                    if (prize.quantity === 0 && prize.exhaustionBehavior === 'show_unavailable') return true;
 
-                // Exclude all other cases
+                    // Exclude exhausted prizes with 'exclude' or 'mark_inactive' behavior
+                    return false;
+                }
+
                 return false;
             })
             .map(prize => ({
