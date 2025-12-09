@@ -12,6 +12,7 @@ export interface User {
 export interface Prize {
   id: string;
   tenantId: string; // Link prize to a specific tenant
+  projectId?: string; // Optional: link to specific project
   name: string;
   type: 'Food Item' | 'Discount' | 'Merchandise' | 'Voucher';
   description: string;
@@ -25,8 +26,6 @@ export interface Tenant {
   email: string;
   password?: string; // For mock auth
   status: 'Active' | 'Trial' | 'Suspended';
-  plan: 'Starter' | 'Growth' | 'Enterprise';
-  nextBillingDate: string;
   logo: string;
   primaryColor: string; // Main accent color
   secondaryColor?: string; // Secondary accent color
@@ -34,12 +33,36 @@ export interface Tenant {
   textColor?: string; // Text color
 }
 
-export interface Invoice {
+export interface ContactRequest {
   id: string;
-  date: string;
-  amount: string;
-  status: 'Paid' | 'Pending' | 'Failed';
-  plan: string;
+  tenantId?: string;
+  name: string;
+  email: string;
+  phone?: string;
+  message: string;
+  requestType: string;
+  status: string;
+  estimatedCost?: number;
+  estimatedTimeframe?: string;
+  adminNotes?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Project {
+  id: string;
+  tenantId: string;
+  name: string;
+  slug?: string;
+  status: string;
+  isPaid: boolean;
+  price?: number;
+  startDate?: string;
+  endDate?: string;
+  spinLimit?: number;
+  currentSpins: number;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface StatCardProps {

@@ -35,7 +35,7 @@ api.interceptors.response.use(
 
 // Auth API
 export const authAPI = {
-    signup: async (data: { businessName: string; email: string; password: string; plan?: string }) => {
+    signup: async (data: { businessName: string; email: string; password: string }) => {
         const response = await api.post('/auth/signup', data);
         return response.data;
     },
@@ -122,20 +122,36 @@ export const spinAPI = {
     }
 };
 
-// Subscription API
-export const subscriptionAPI = {
-    get: async () => {
-        const response = await api.get('/subscription');
+// Contact Requests API
+export const contactAPI = {
+    create: async (data: {
+        name: string;
+        email: string;
+        phone?: string;
+        message: string;
+        requestType: string;
+    }) => {
+        const response = await api.post('/contact', data);
         return response.data;
     },
 
-    upgrade: async (plan: string) => {
-        const response = await api.post('/subscription/upgrade', { plan });
+    getAll: async () => {
+        const response = await api.get('/contact');
         return response.data;
     },
 
-    getInvoices: async () => {
-        const response = await api.get('/subscription/invoices');
+    update: async (id: string, data: {
+        status?: string;
+        estimatedCost?: number;
+        estimatedTimeframe?: string;
+        adminNotes?: string;
+    }) => {
+        const response = await api.patch(`/contact/${id}`, data);
+        return response.data;
+    },
+
+    delete: async (id: string) => {
+        const response = await api.delete(`/contact/${id}`);
         return response.data;
     }
 };

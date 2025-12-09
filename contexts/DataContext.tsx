@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { User, Prize, Tenant, Invoice } from '../types';
-import { authAPI, prizesAPI, usersAPI, subscriptionAPI, tenantAPI } from '../src/services/api';
+import { User, Prize, Tenant, ContactRequest } from '../types';
+import { authAPI, prizesAPI, usersAPI, tenantAPI } from '../src/services/api';
 
 interface DataContextType {
   // Auth State
@@ -8,13 +8,13 @@ interface DataContextType {
   isLoading: boolean;
   login: (email: string, password: string) => Promise<boolean>;
   logout: () => void;
-  register: (data: { businessName: string; email: string; password: string; plan?: string }) => Promise<boolean>;
+  register: (data: { businessName: string; email: string; password: string }) => Promise<boolean>;
   updateTenantSettings: (updates: Partial<Tenant>) => Promise<void>;
 
   // Data getters
   prizes: Prize[];
   users: User[];
-  invoices: Invoice[];
+  contactRequests: ContactRequest[];
 
   // Actions
   addPrize: (prize: Omit<Prize, 'id' | 'tenantId' | 'createdAt' | 'updatedAt'>) => Promise<void>;
@@ -34,7 +34,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [currentTenant, setCurrentTenant] = useState<Tenant | null>(null);
   const [prizes, setPrizes] = useState<Prize[]>([]);
   const [users, setUsers] = useState<User[]>([]);
-  const [invoices, setInvoices] = useState<Invoice[]>([]);
+  const [contactRequests, setContactRequests] = useState<ContactRequest[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   // Check for existing session on mount
@@ -67,14 +67,6 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       ]);
       setPrizes(prizesData);
       setUsers(usersData);
-
-      // Load invoices
-      try {
-        const subscriptionData = await subscriptionAPI.get();
-        setInvoices(subscriptionData.invoices || []);
-      } catch (error) {
-        console.error('Failed to load invoices:', error);
-      }
     } catch (error) {
       console.error('Failed to load tenant data:', error);
     }
@@ -101,10 +93,10 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setCurrentTenant(null);
     setPrizes([]);
     setUsers([]);
-    setInvoices([]);
+    setContactRequests([]);
   };
 
-  const register = async (data: { businessName: string; email: string; password: string; plan?: string }): Promise<boolean> => {
+  const register = async (data: { businessName: string; email: string; password: string }): Promise<boolean> => {
     try {
       const { tenant, token } = await authAPI.signup(data);
       localStorage.setItem('auth_token', token);
@@ -209,7 +201,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       updateTenantSettings,
       prizes,
       users,
-      invoices,
+      contactRequests,
       addPrize,
       deletePrize,
       updatePrize,

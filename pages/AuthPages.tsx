@@ -160,7 +160,7 @@ export const SignupPage: React.FC = () => {
             className="w-full py-3 bg-primary text-white font-bold rounded-lg hover:bg-primary-dark transition-colors disabled:opacity-50"
             disabled={isLoading}
           >
-            {isLoading ? 'Creating Account...' : 'Start Free Trial'}
+            {isLoading ? 'Creating Account...' : 'Create Account'}
           </button>
         </form>
         <p className="mt-6 text-center text-sm text-slate-500">
