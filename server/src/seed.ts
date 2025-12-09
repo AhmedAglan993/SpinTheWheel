@@ -81,14 +81,18 @@ async function seed() {
         console.log(`✅ Created ${users.length} sample users`);
 
         // Create spin configuration
-        const existingConfig = await prisma.spinConfiguration.findUnique({
-            where: { tenantId: demoTenant.id }
+        const existingConfig = await prisma.spinConfiguration.findFirst({
+            where: {
+                tenantId: demoTenant.id,
+                projectId: null  // Default tenant config
+            }
         });
 
         if (!existingConfig) {
             await prisma.spinConfiguration.create({
                 data: {
                     tenantId: demoTenant.id,
+                    projectId: null,
                     wheelColors: ['#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A', '#98D8C8', '#F7DC6F'],
                     spinDuration: 5000,
                     soundEnabled: true,
