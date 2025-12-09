@@ -11,7 +11,7 @@ import ContactRequestsPage from './pages/admin/ContactRequestsPage';
 import ProjectsPage from './pages/admin/ProjectsPage';
 import DemoSpinPage from './pages/DemoSpinPage';
 import ContactFormPage from './pages/ContactFormPage';
-import PublicSpinPage from './pages/PublicSpinPage';
+import SpinGamePage from './pages/SpinGamePage';
 import { useData } from './contexts/DataContext';
 
 // Protected Route Component
@@ -40,7 +40,9 @@ const App: React.FC = () => {
         <Route path="/login" element={<LoginPage />} />
 
         {/* Public Spin Links - No Auth Required */}
-        <Route path="/spin/:projectId" element={<PublicSpinPage />} />
+        {/* Both /spin/:projectId and /play/:tenantId use the same component */}
+        <Route path="/spin/:tenantId" element={<SpinGamePage />} />
+        <Route path="/play/:tenantId" element={<SpinGamePage />} />
 
         {/* Admin Dashboard (Protected) */}
         <Route path="/admin" element={
