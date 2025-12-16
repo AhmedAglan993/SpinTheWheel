@@ -99,8 +99,7 @@ export const SignupPage: React.FC = () => {
       const success = await register({
         businessName: formData.businessName,
         email: formData.email,
-        password: formData.password,
-        plan
+        password: formData.password
       });
 
       if (success) {

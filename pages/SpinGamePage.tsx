@@ -45,8 +45,6 @@ const SpinGamePage: React.FC = () => {
           ownerName: '',
           email: '',
           status: 'Active',
-          plan: 'Starter',
-          nextBillingDate: '',
           logo: tenant.logo || '',
           primaryColor: tenant.primaryColor || '#2bbdee',
           secondaryColor: tenant.secondaryColor || '#1e293b',
