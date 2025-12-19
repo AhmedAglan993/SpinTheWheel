@@ -17,6 +17,7 @@ model Tenant {
   ownerName       String
   email           String   @unique
   password        String   // Hashed password
+  firebaseUid     String?  // Firebase User ID for social login
   status          String   @default("Active") // Active, Trial, Suspended
   logo            String?
   primaryColor    String   @default("#2bbdee")

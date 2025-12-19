@@ -7,6 +7,7 @@ interface DataContextType {
   currentTenant: Tenant | null;
   isLoading: boolean;
   login: (email: string, password: string) => Promise<boolean>;
+  loginWithFirebase: (firebaseUser: { email: string | null; displayName: string | null; uid: string }) => Promise<boolean>;
   logout: () => void;
   register: (data: { businessName: string; email: string; password: string }) => Promise<boolean>;
   updateTenantSettings: (updates: Partial<Tenant>) => Promise<void>;
@@ -110,6 +111,38 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   };
 
+  // Firebase/Social Login
+  const loginWithFirebase = async (firebaseUser: { email: string | null; displayName: string | null; uid: string }): Promise<boolean> => {
+    if (!firebaseUser.email) return false;
+
+    try {
+      // Try to login with existing account
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3001/api'}/auth/firebase`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: firebaseUser.email,
+          displayName: firebaseUser.displayName || firebaseUser.email.split('@')[0],
+          firebaseUid: firebaseUser.uid
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Firebase auth failed');
+      }
+
+      const { tenant, token } = await response.json();
+      localStorage.setItem('auth_token', token);
+      localStorage.setItem('current_tenant', JSON.stringify(tenant));
+      setCurrentTenant(tenant);
+      await loadTenantData();
+      return true;
+    } catch (error) {
+      console.error('Firebase login failed:', error);
+      return false;
+    }
+  };
+
   const updateTenantSettings = async (updates: Partial<Tenant>) => {
     try {
       const updatedTenant = await tenantAPI.update(updates);
@@ -196,6 +229,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       currentTenant,
       isLoading,
       login,
+      loginWithFirebase,
       logout,
       register,
       updateTenantSettings,

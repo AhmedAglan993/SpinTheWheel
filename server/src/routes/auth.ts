@@ -124,4 +124,62 @@ router.get('/me', authenticate, async (req: AuthRequest, res: Response) => {
     }
 });
 
+// POST /api/auth/firebase - Login/Register with Firebase (Google, etc.)
+router.post('/firebase', async (req, res: Response) => {
+    try {
+        const { email, displayName, firebaseUid } = req.body;
+
+        if (!email || !firebaseUid) {
+            return res.status(400).json({ error: 'Email and Firebase UID required' });
+        }
+
+        // Check if user already exists
+        let tenant = await prisma.tenant.findUnique({
+            where: { email }
+        });
+
+        if (tenant) {
+            // Existing user - update firebaseUid if not set
+            if (!tenant.firebaseUid) {
+                tenant = await prisma.tenant.update({
+                    where: { email },
+                    data: { firebaseUid }
+                });
+            }
+        } else {
+            // New user - create account
+            const randomPassword = await hashPassword(Math.random().toString(36).slice(-12));
+
+            tenant = await prisma.tenant.create({
+                data: {
+                    name: displayName || email.split('@')[0],
+                    ownerName: displayName || 'Admin',
+                    email,
+                    password: randomPassword,
+                    firebaseUid,
+                    status: 'Active',
+                    logo: `https://placehold.co/400x400/2bbdee/ffffff?text=${(displayName || email).charAt(0).toUpperCase()}`,
+                    primaryColor: '#2bbdee'
+                }
+            });
+        }
+
+        // Generate JWT token
+        const token = generateToken({
+            tenantId: tenant.id,
+            email: tenant.email
+        });
+
+        const { password: _, ...tenantWithoutPassword } = tenant;
+
+        res.json({
+            tenant: tenantWithoutPassword,
+            token
+        });
+    } catch (error) {
+        console.error('Firebase auth error:', error);
+        res.status(500).json({ error: 'Firebase authentication failed' });
+    }
+});
+
 export default router;
