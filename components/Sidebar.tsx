@@ -7,8 +7,8 @@ const Sidebar: React.FC = () => {
 
   const linkClass = ({ isActive }: { isActive: boolean }) =>
     `flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors ${isActive
-      ? 'bg-primary/10 text-primary dark:bg-primary dark:text-white'
-      : 'text-text-light dark:text-text-dark hover:bg-slate-100 dark:hover:bg-slate-800'
+      ? 'bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary-light'
+      : 'text-text-light dark:text-text-dark hover:bg-surface-elevated-light dark:hover:bg-surface-elevated-dark'
     }`;
 
   const iconClass = (isActive: boolean) =>
@@ -17,7 +17,7 @@ const Sidebar: React.FC = () => {
   if (!currentTenant) return null;
 
   return (
-    <aside className="hidden md:flex flex-col w-64 bg-white dark:bg-background-dark border-r border-slate-200 dark:border-slate-800 h-screen sticky top-0">
+    <aside className="hidden md:flex flex-col w-64 bg-surface-light dark:bg-surface-dark border-r border-border-light dark:border-border-dark h-screen sticky top-0">
       <div className="flex flex-col h-full p-4">
         {/* Logo Area */}
         <div className="flex items-center gap-3 p-2 mb-6">
@@ -101,7 +101,7 @@ const Sidebar: React.FC = () => {
 
         {/* Bottom Actions */}
         <div className="mt-auto flex flex-col gap-1">
-          <button onClick={logout} className="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg text-text-light dark:text-text-dark hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors w-full text-left">
+          <button onClick={logout} className="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg text-text-light dark:text-text-dark hover:bg-surface-elevated-light dark:hover:bg-surface-elevated-dark transition-colors w-full text-left">
             <span className="material-symbols-outlined">logout</span>
             Sign Out
           </button>

@@ -1,72 +1,122 @@
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Spin & Win App</title>
-    
-    <!-- Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Spline+Sans:wght@300;400;500;700&display=swap"
-      rel="stylesheet"
-    />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200"
-      rel="stylesheet"
-    />
+<html lang="en" class="dark">
 
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-    <script>
-      tailwind.config = {
-        darkMode: "class",
-        theme: {
-          extend: {
-            colors: {
-              "primary": "#2bbdee",
-              "primary-dark": "#25a0ca",
-              "background-light": "#f6f7f8",
-              "background-dark": "#101d22",
-              "content-light": "#FFFFFF",
-              "content-dark": "#1a252f",
-              "text-light": "#34495E",
-              "text-dark": "#ECF0F1",
-              "text-muted-light": "#7f8c8d",
-              "text-muted-dark": "#95a5a6",
-              "border-light": "#BDC3C7",
-              "border-dark": "#7f8c8d",
-              "success": "#2ECC71",
-              "danger": "#E74C3C",
-              "warning": "#F1C40F",
-              "slate-800": "#1e293b",
-            },
-            fontFamily: {
-              "display": ["Spline Sans", "sans-serif"],
-            },
-            borderRadius: {
-              "DEFAULT": "0.25rem",
-              "lg": "0.5rem",
-              "xl": "0.75rem",
-              "2xl": "1rem",
-              "full": "9999px",
-            },
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SpinTheWheel by Seqed Games | Custom Spin Wheel Experiences</title>
+  <meta name="description"
+    content="Create custom branded spin wheels for your events and campaigns. A product of Seqed Games - professional game development company based in Egypt, serving clients globally." />
+  <meta name="author" content="Seqed Games" />
+  <meta name="keywords"
+    content="spin wheel, prize wheel, custom spin wheel, branded games, gamification, Seqed Games, event marketing, lead generation" />
+
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="SpinTheWheel by Seqed Games | Custom Spin Wheel Experiences" />
+  <meta property="og:description"
+    content="Create custom branded spin wheels for your events and campaigns. Powered by Seqed Games." />
+  <meta property="og:site_name" content="SpinTheWheel by Seqed Games" />
+
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="SpinTheWheel by Seqed Games" />
+  <meta name="twitter:description" content="Create custom branded spin wheels for your events and campaigns." />
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="/seqed-games-logo.png" />
+  <link rel="apple-touch-icon" href="/seqed-games-logo.png" />
+
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Spline+Sans:wght@300;400;500;700&display=swap"
+    rel="stylesheet" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200"
+    rel="stylesheet" />
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <script>
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            // Hybrid Primary - Blend of SpinTheWheel (#2bbdee) and Seqed Games (#00f3ff) cyan
+            "primary": "#1eb8e8",
+            "primary-dark": "#1a9dc7",
+            "primary-light": "#3dc5f0",
+
+            // Seqed Games Gold Accent - for highlights and special elements
+            "accent-gold": "#d4af37",
+            "accent-gold-dark": "#b8962f",
+            "accent-gold-light": "#e5c76b",
+
+            // Hybrid Background colors - Seqed Games dark navy aesthetic
+            "background-light": "#f8fafc",
+            "background-dark": "#0a0e12",
+            "background-darker": "#060809",
+
+            // Surface colors for cards and sections
+            "surface-light": "#ffffff",
+            "surface-dark": "#111920",
+            "surface-elevated-light": "#f1f5f9",
+            "surface-elevated-dark": "#1a2530",
+
+            // Content containers
+            "content-light": "#FFFFFF",
+            "content-dark": "#151d25",
+
+            // Text colors
+            "text-light": "#1e293b",
+            "text-dark": "#f1f5f9",
+            "text-muted-light": "#64748b",
+            "text-muted-dark": "#94a3b8",
+
+            // Border colors - subtle with cyan tint
+            "border-light": "#e2e8f0",
+            "border-dark": "#1e3a4a",
+
+            // Status colors with Seqed Games vibrancy
+            "success": "#22c55e",
+            "danger": "#ef4444",
+            "warning": "#eab308",
+            "info": "#3b82f6",
+
+            // Slate overrides for consistency
+            "slate-800": "#1e293b",
+            "slate-900": "#0f172a",
+          },
+          fontFamily: {
+            "display": ["Spline Sans", "sans-serif"],
+          },
+          borderRadius: {
+            "DEFAULT": "0.25rem",
+            "lg": "0.5rem",
+            "xl": "0.75rem",
+            "2xl": "1rem",
+            "full": "9999px",
           },
         },
-      };
-    </script>
-    <style>
-      body {
-        font-family: 'Spline Sans', sans-serif;
-      }
-      .material-symbols-outlined {
-        font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
-      }
-      .material-symbols-outlined.filled {
-        font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
-      }
-    </style>
+      },
+    };
+  </script>
+  <style>
+    body {
+      font-family: 'Spline Sans', sans-serif;
+    }
+
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    }
+
+    .material-symbols-outlined.filled {
+      font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    }
+  </style>
   <script type="importmap">
 {
   "imports": {
@@ -78,10 +128,12 @@
   }
 }
 </script>
-<link rel="stylesheet" href="/index.css">
+  <link rel="stylesheet" href="/index.css">
 </head>
-  <body class="bg-background-light text-slate-900 dark:bg-background-dark dark:text-white antialiased">
-    <div id="root"></div>
+
+<body class="bg-background-light text-slate-900 dark:bg-background-dark dark:text-white antialiased">
+  <div id="root"></div>
   <script type="module" src="/index.tsx"></script>
 </body>
+
 </html>

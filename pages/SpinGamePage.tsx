@@ -247,7 +247,7 @@ const SpinGamePage: React.FC = () => {
 
       {/* Footer */}
       < footer className="absolute bottom-4 w-full flex justify-center items-center gap-6 text-xs text-slate-400 z-20 px-4" >
-        <span>&copy; {new Date().getFullYear()} {activeTenant.name}</span>
+        <p>© {new Date().getFullYear()} Seqed Games. All rights reserved.</p>
       </footer >
 
       {/* Prize Modal */}

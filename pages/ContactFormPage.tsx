@@ -31,9 +31,9 @@ const ContactFormPage: React.FC = () => {
 
     if (submitted) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-900 p-4">
-                <div className="w-full max-w-md bg-white dark:bg-slate-800 rounded-2xl shadow-xl p-8 text-center">
-                    <div className="size-16 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
+            <div className="min-h-screen flex items-center justify-center bg-background-light dark:bg-background-dark p-4">
+                <div className="w-full max-w-md bg-surface-light dark:bg-surface-dark rounded-2xl shadow-xl p-8 text-center border border-border-light dark:border-border-dark">
+                    <div className="size-16 bg-success/10 rounded-full flex items-center justify-center mx-auto mb-4">
                         <span className="material-symbols-outlined text-green-600 dark:text-green-400 text-3xl">check_circle</span>
                     </div>
                     <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">Request Received!</h2>
@@ -49,23 +49,24 @@ const ContactFormPage: React.FC = () => {
     }
 
     return (
-        <div className="min-h-screen bg-slate-50 dark:bg-slate-900 p-4">
+        <div className="min-h-screen bg-background-light dark:bg-background-dark p-4">
             {/* Header */}
             <nav className="flex items-center justify-between p-6 max-w-7xl mx-auto">
-                <Link to="/" className="flex items-center gap-2">
-                    <div className="size-8 bg-primary rounded-lg flex items-center justify-center text-white">
-                        <span className="material-symbols-outlined">api</span>
+                <Link to="/" className="flex items-center gap-3">
+                    <img src="/seqed-games-logo.png" alt="Seqed Games" className="size-10" />
+                    <div className="flex flex-col leading-tight">
+                        <span className="text-xl font-bold text-text-light dark:text-text-dark leading-none">SpinTheWheel</span>
+                        <span className="text-xs text-text-muted-light dark:text-text-muted-dark leading-none mt-1">by Seqed Games</span>
                     </div>
-                    <span className="text-xl font-bold text-slate-900 dark:text-white">Spinify</span>
                 </Link>
-                <Link to="/login" className="text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-primary transition-colors">
+                <Link to="/login" className="text-sm font-medium text-text-muted-light dark:text-text-muted-dark hover:text-primary transition-colors">
                     Admin Login
                 </Link>
             </nav>
 
             {/* Form */}
             <div className="max-w-2xl mx-auto mt-8">
-                <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl p-8">
+                <div className="bg-surface-light dark:bg-surface-dark rounded-2xl shadow-xl p-8 border border-border-light dark:border-border-dark">
                     <div className="text-center mb-8">
                         <h1 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">Request Custom Spin Wheel</h1>
                         <p className="text-slate-600 dark:text-slate-400">
@@ -84,7 +85,7 @@ const ContactFormPage: React.FC = () => {
                                     required
                                     value={formData.name}
                                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                    className="w-full p-3 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-white"
+                                    className="w-full p-3 rounded-lg border border-border-light dark:border-border-dark bg-surface-light dark:bg-surface-elevated-dark text-text-light dark:text-text-dark"
                                     placeholder="Your name"
                                 />
                             </div>
@@ -98,7 +99,7 @@ const ContactFormPage: React.FC = () => {
                                     required
                                     value={formData.email}
                                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                                    className="w-full p-3 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-white"
+                                    className="w-full p-3 rounded-lg border border-border-light dark:border-border-dark bg-surface-light dark:bg-surface-elevated-dark text-text-light dark:text-text-dark"
                                     placeholder="your@email.com"
                                 />
                             </div>

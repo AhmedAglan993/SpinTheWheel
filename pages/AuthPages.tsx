@@ -30,8 +30,8 @@ export const LoginPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-900 p-4">
-      <div className="w-full max-w-md bg-white dark:bg-slate-800 rounded-2xl shadow-xl p-8">
+    <div className="min-h-screen flex items-center justify-center bg-background-light dark:bg-background-dark p-4">
+      <div className="w-full max-w-md bg-surface-light dark:bg-surface-dark rounded-2xl shadow-xl p-8 border border-border-light dark:border-border-dark">
         <div className="text-center mb-8">
           <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Welcome Back</h1>
           <p className="text-slate-500">Log in to manage your campaigns</p>
@@ -43,7 +43,7 @@ export const LoginPage: React.FC = () => {
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full p-3 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700"
+              className="w-full p-3 rounded-lg border border-border-light dark:border-border-dark bg-surface-light dark:bg-surface-elevated-dark text-text-light dark:text-text-dark"
               required
               disabled={isLoading}
             />
@@ -54,7 +54,7 @@ export const LoginPage: React.FC = () => {
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full p-3 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700"
+              className="w-full p-3 rounded-lg border border-border-light dark:border-border-dark bg-surface-light dark:bg-surface-elevated-dark text-text-light dark:text-text-dark"
               required
               disabled={isLoading}
             />
@@ -115,8 +115,8 @@ export const SignupPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-900 p-4">
-      <div className="w-full max-w-md bg-white dark:bg-slate-800 rounded-2xl shadow-xl p-8">
+    <div className="min-h-screen flex items-center justify-center bg-background-light dark:bg-background-dark p-4">
+      <div className="w-full max-w-md bg-surface-light dark:bg-surface-dark rounded-2xl shadow-xl p-8 border border-border-light dark:border-border-dark">
         <div className="text-center mb-8">
           <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Create Account</h1>
           <p className="text-slate-500">Selected Plan: <span className="capitalize font-bold text-primary">{plan}</span></p>
@@ -127,7 +127,7 @@ export const SignupPage: React.FC = () => {
             <input
               type="text"
               required
-              className="w-full p-3 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700"
+              className="w-full p-3 rounded-lg border border-border-light dark:border-border-dark bg-surface-light dark:bg-surface-elevated-dark text-text-light dark:text-text-dark"
               onChange={(e) => setFormData({ ...formData, businessName: e.target.value })}
               disabled={isLoading}
             />
@@ -137,7 +137,7 @@ export const SignupPage: React.FC = () => {
             <input
               type="email"
               required
-              className="w-full p-3 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700"
+              className="w-full p-3 rounded-lg border border-border-light dark:border-border-dark bg-surface-light dark:bg-surface-elevated-dark text-text-light dark:text-text-dark"
               onChange={(e) => setFormData({ ...formData, email: e.target.value })}
               disabled={isLoading}
             />

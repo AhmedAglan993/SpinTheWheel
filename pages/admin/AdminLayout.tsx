@@ -26,12 +26,12 @@ const AdminLayout: React.FC = () => {
   };
 
   return (
-    <div className="flex h-screen bg-slate-50 dark:bg-background-dark overflow-hidden">
+    <div className="flex h-screen bg-background-light dark:bg-background-dark overflow-hidden">
       <Sidebar />
 
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Header */}
-        <header className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-6 py-4">
+        <header className="bg-surface-light dark:bg-surface-dark border-b border-border-light dark:border-border-dark px-6 py-4">
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
@@ -44,11 +44,11 @@ const AdminLayout: React.FC = () => {
 
             {/* Quick Actions */}
             <div className="flex items-center gap-3">
-              <button className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors">
-                <span className="material-symbols-outlined text-slate-600 dark:text-slate-400">notifications</span>
+              <button className="p-2 hover:bg-surface-elevated-light dark:hover:bg-surface-elevated-dark rounded-lg transition-colors">
+                <span className="material-symbols-outlined text-text-muted-light dark:text-text-muted-dark">notifications</span>
               </button>
-              <button className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors">
-                <span className="material-symbols-outlined text-slate-600 dark:text-slate-400">settings</span>
+              <button className="p-2 hover:bg-surface-elevated-light dark:hover:bg-surface-elevated-dark rounded-lg transition-colors">
+                <span className="material-symbols-outlined text-text-muted-light dark:text-text-muted-dark">settings</span>
               </button>
             </div>
           </div>
@@ -58,6 +58,22 @@ const AdminLayout: React.FC = () => {
         <main className="flex-1 overflow-y-auto p-6">
           <Outlet />
         </main>
+
+        {/* Footer */}
+        <footer className="bg-surface-light dark:bg-surface-dark border-t border-border-light dark:border-border-dark px-6 py-3">
+          <div className="flex items-center justify-between text-xs text-text-muted-light dark:text-text-muted-dark">
+            <p>© {new Date().getFullYear()} Seqed Games. All rights reserved.</p>
+            <a
+              href="https://seqedgames.com/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-primary transition-colors flex items-center gap-1"
+            >
+              Powered by Seqed Games
+              <span className="material-symbols-outlined !text-xs">arrow_outward</span>
+            </a>
+          </div>
+        </footer>
       </div>
     </div>
   );

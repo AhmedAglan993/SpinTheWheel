@@ -179,9 +179,10 @@ const DemoSpinPage: React.FC = () => {
 
             {/* Footer */}
             <footer className="absolute bottom-4 w-full flex justify-center items-center gap-6 text-xs text-slate-400 z-20 px-4">
-                <span>&copy; {new Date().getFullYear()} Spinify</span>
-                <Link to="/" className="hover:text-primary transition-colors">Home</Link>
-                <Link to="/contact" className="hover:text-primary transition-colors">Contact</Link>
+                <p>© {new Date().getFullYear()} Seqed Games. All rights reserved.</p>
+                <a href="https://seqedgames.com/" target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors">
+                    seqedgames.com
+                </a>
             </footer>
 
             {/* Prize Modal */}
