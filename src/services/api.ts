@@ -219,4 +219,17 @@ export const projectsAPI = {
     }
 };
 
+// Stats API
+export const statsAPI = {
+    getOverview: async () => {
+        const response = await api.get('/stats/overview');
+        return response.data;
+    },
+
+    getProjectStats: async (projectId: string) => {
+        const response = await api.get(`/stats/project/${projectId}`);
+        return response.data;
+    }
+};
+
 export default api;

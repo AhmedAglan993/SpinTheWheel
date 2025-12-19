@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { projectsAPI } from '../../src/services/api';
 
 interface Project {
@@ -17,6 +17,9 @@ const ProjectsPage: React.FC = () => {
     const [projects, setProjects] = useState<Project[]>([]);
     const [loading, setLoading] = useState(true);
     const [showCreateModal, setShowCreateModal] = useState(false);
+    const [showQRModal, setShowQRModal] = useState(false);
+    const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+    const qrCanvasRef = useRef<HTMLCanvasElement>(null);
     const [newProject, setNewProject] = useState({
         name: '',
         startDate: '',
@@ -64,6 +67,81 @@ const ProjectsPage: React.FC = () => {
             case 'Draft': return 'bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-400';
             case 'Completed': return 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400';
             default: return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400';
+        }
+    };
+
+    // Generate QR code on canvas
+    const generateQRCode = (text: string, canvas: HTMLCanvasElement) => {
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
+
+        const size = 256;
+        canvas.width = size;
+        canvas.height = size;
+
+        // Simple QR-like pattern (for demo - in production use a real QR library)
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, size, size);
+
+        // Draw border
+        ctx.strokeStyle = '#000000';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(10, 10, size - 20, size - 20);
+
+        // Draw corner patterns
+        const drawCorner = (x: number, y: number) => {
+            ctx.fillStyle = '#000000';
+            ctx.fillRect(x, y, 40, 40);
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(x + 8, y + 8, 24, 24);
+            ctx.fillStyle = '#000000';
+            ctx.fillRect(x + 14, y + 14, 12, 12);
+        };
+
+        drawCorner(20, 20);
+        drawCorner(size - 60, 20);
+        drawCorner(20, size - 60);
+
+        // Add text
+        ctx.fillStyle = '#000000';
+        ctx.font = 'bold 12px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('SPIN WHEEL', size / 2, size / 2 - 10);
+        ctx.font = '10px monospace';
+        ctx.fillText(text.substring(0, 30), size / 2, size / 2 + 10);
+        ctx.fillText(text.substring(30, 60), size / 2, size / 2 + 24);
+    };
+
+    const openQRModal = (project: Project) => {
+        setSelectedProject(project);
+        setShowQRModal(true);
+        setTimeout(() => {
+            if (qrCanvasRef.current) {
+                const link = `${window.location.origin}/#/spin/${project.id}`;
+                generateQRCode(link, qrCanvasRef.current);
+            }
+        }, 100);
+    };
+
+    const downloadQR = () => {
+        if (qrCanvasRef.current && selectedProject) {
+            const link = document.createElement('a');
+            link.download = `qr-${selectedProject.name.replace(/\s+/g, '-').toLowerCase()}.png`;
+            link.href = qrCanvasRef.current.toDataURL('image/png');
+            link.click();
+        }
+    };
+
+    const openPreview = (project: Project) => {
+        window.open(`${window.location.origin}/#/spin/${project.id}`, '_blank');
+    };
+
+    const handleStatusChange = async (project: Project, newStatus: string) => {
+        try {
+            await projectsAPI.update(project.id, { status: newStatus });
+            fetchProjects();
+        } catch (error) {
+            console.error('Failed to update status:', error);
         }
     };
 
@@ -128,7 +206,7 @@ const ProjectsPage: React.FC = () => {
                                         {project.isPaid && <span className="ml-2 text-green-500 text-xs">Paid</span>}
                                     </td>
                                     <td className="p-4">
-                                        <div className="flex gap-2">
+                                        <div className="flex gap-1">
                                             <button
                                                 onClick={() => {
                                                     const link = `${window.location.origin}/#/spin/${project.id}`;
@@ -140,12 +218,29 @@ const ProjectsPage: React.FC = () => {
                                             >
                                                 <span className="material-symbols-outlined !text-lg">link</span>
                                             </button>
-                                            <button className="p-1.5 text-slate-500 hover:text-primary hover:bg-primary/10 rounded-md transition-colors" title="Edit">
-                                                <span className="material-symbols-outlined !text-lg">edit</span>
+                                            <button
+                                                onClick={() => openQRModal(project)}
+                                                className="p-1.5 text-slate-500 hover:text-purple-500 hover:bg-purple-500/10 rounded-md transition-colors"
+                                                title="QR Code"
+                                            >
+                                                <span className="material-symbols-outlined !text-lg">qr_code</span>
                                             </button>
-                                            <button className="p-1.5 text-slate-500 hover:text-blue-500 hover:bg-blue-500/10 rounded-md transition-colors" title="View Wheel">
+                                            <button
+                                                onClick={() => openPreview(project)}
+                                                className="p-1.5 text-slate-500 hover:text-blue-500 hover:bg-blue-500/10 rounded-md transition-colors"
+                                                title="Preview"
+                                            >
                                                 <span className="material-symbols-outlined !text-lg">visibility</span>
                                             </button>
+                                            <select
+                                                value={project.status}
+                                                onChange={(e) => handleStatusChange(project, e.target.value)}
+                                                className="px-2 py-1 text-xs rounded border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300"
+                                            >
+                                                <option value="Draft">Draft</option>
+                                                <option value="Active">Active</option>
+                                                <option value="Completed">Completed</option>
+                                            </select>
                                         </div>
                                     </td>
                                 </tr>
@@ -234,6 +329,40 @@ const ProjectsPage: React.FC = () => {
                                 </button>
                             </div>
                         </form>
+                    </div>
+                </div>
+            )}
+
+            {/* QR Code Modal */}
+            {showQRModal && selectedProject && (
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white dark:bg-slate-900 rounded-xl w-full max-w-sm p-6 shadow-xl text-center">
+                        <h2 className="text-xl font-bold mb-2 text-slate-900 dark:text-white">QR Code</h2>
+                        <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">{selectedProject.name}</p>
+
+                        <div className="bg-white p-4 rounded-lg mb-4 inline-block">
+                            <canvas ref={qrCanvasRef} className="mx-auto" />
+                        </div>
+
+                        <p className="text-xs text-slate-400 mb-4 break-all">
+                            {`${window.location.origin}/#/spin/${selectedProject.id}`}
+                        </p>
+
+                        <div className="flex gap-3">
+                            <button
+                                onClick={() => setShowQRModal(false)}
+                                className="flex-1 px-4 py-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
+                            >
+                                Close
+                            </button>
+                            <button
+                                onClick={downloadQR}
+                                className="flex-1 px-4 py-2 bg-primary hover:bg-primary-dark text-white rounded-lg transition-colors flex items-center justify-center gap-2"
+                            >
+                                <span className="material-symbols-outlined !text-lg">download</span>
+                                Download
+                            </button>
+                        </div>
                     </div>
                 </div>
             )}

@@ -19,9 +19,16 @@ const SpinGamePage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
 
   const [showModal, setShowModal] = useState(false);
+  const [showLeadModal, setShowLeadModal] = useState(true); // Show lead capture first
   const [isSpinning, setIsSpinning] = useState(false);
   const [rotation, setRotation] = useState(0);
   const [wonPrize, setWonPrize] = useState<Prize | null>(null);
+
+  // Lead capture state
+  const [userEmail, setUserEmail] = useState('');
+  const [userPhone, setUserPhone] = useState('');
+  const [hasProvidedInfo, setHasProvidedInfo] = useState(false);
+  const [alreadySpun, setAlreadySpun] = useState(false);
 
   useEffect(() => {
     const fetchGameData = async () => {
@@ -67,19 +74,51 @@ const SpinGamePage: React.FC = () => {
 
   // Fallback if no prizes exist
   const displayPrizes = activePrizes.length > 0 ? activePrizes : [
-    { id: '0', tenantId: '', name: 'Better Luck Next Time', type: 'Voucher', description: '', status: 'Active' }
+    { id: '0', tenantId: '', name: 'Better Luck Next Time', type: 'Voucher', description: '', status: 'Active', isAvailable: true }
   ] as Prize[];
 
-  const handleSpin = () => {
+  // Only allow winning available prizes
+  const availablePrizes = displayPrizes.filter((p: any) => p.isAvailable !== false);
+
+  // Handle lead form submission
+  const handleLeadSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!userEmail && !userPhone) {
+      alert('Please provide at least an email or phone number.');
+      return;
+    }
+    setHasProvidedInfo(true);
+    setShowLeadModal(false);
+  };
+
+  const handleSpin = async () => {
     if (isSpinning) return;
+
+    // Make sure user has provided info
+    if (!hasProvidedInfo) {
+      setShowLeadModal(true);
+      return;
+    }
+
+    // Make sure there are available prizes
+    if (availablePrizes.length === 0) {
+      alert('No prizes available at this time.');
+      return;
+    }
+
     setIsSpinning(true);
     setWonPrize(null);
 
-    const randomIndex = Math.floor(Math.random() * displayPrizes.length);
-    const selectedPrize = displayPrizes[randomIndex];
+    // Select from AVAILABLE prizes only
+    const randomIndex = Math.floor(Math.random() * availablePrizes.length);
+    const selectedPrize = availablePrizes[randomIndex];
+
+    // Find the index in displayPrizes for wheel animation
+    const displayIndex = displayPrizes.findIndex(p => p.id === selectedPrize.id);
+    const animationIndex = displayIndex >= 0 ? displayIndex : randomIndex;
 
     const sliceAngle = 360 / displayPrizes.length;
-    const centerOfSlice = (randomIndex * sliceAngle) + (sliceAngle / 2);
+    const centerOfSlice = (animationIndex * sliceAngle) + (sliceAngle / 2);
     let targetRotation = 270 - centerOfSlice;
 
     const currentRotationMod = rotation % 360;
@@ -89,7 +128,30 @@ const SpinGamePage: React.FC = () => {
 
     setRotation(nextRotation);
 
-    setTimeout(() => {
+    setTimeout(async () => {
+      // Record the spin to backend with user info
+      try {
+        await axios.post(`${API_URL}/spin/record`, {
+          tenantId: tenantId,
+          userName: '',
+          userEmail: userEmail,
+          userPhone: userPhone,
+          prizeWon: selectedPrize.name
+        });
+
+        // Refresh prizes to get updated quantities
+        const response = await axios.get(`${API_URL}/spin/config/${tenantId}`);
+        setActivePrizes(response.data.prizes || []);
+      } catch (err: any) {
+        console.error('Failed to record spin:', err);
+        // Check if user already spun today
+        if (err.response?.status === 429) {
+          setAlreadySpun(true);
+          setIsSpinning(false);
+          return;
+        }
+      }
+
       setIsSpinning(false);
       setWonPrize(selectedPrize);
       setShowModal(true);
@@ -216,6 +278,16 @@ const SpinGamePage: React.FC = () => {
                         >
                           {prize.name.length > 12 ? prize.name.substring(0, 10) + '..' : prize.name}
                         </text>
+                        {/* Prize count badge */}
+                        <text
+                          fill="rgba(255,255,255,0.7)"
+                          fontSize="2"
+                          textAnchor="middle"
+                          dominantBaseline="middle"
+                          y="4"
+                        >
+                          {(prize as any).isUnlimited ? '∞' : `${(prize as any).quantity || 0} left`}
+                        </text>
                       </g>
                     </g>
                   );
@@ -254,7 +326,7 @@ const SpinGamePage: React.FC = () => {
       {
         showModal && wonPrize && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-            <div className="w-full max-w-md rounded-2xl bg-white dark:bg-slate-800 shadow-2xl transform transition-all scale-100 animate-in zoom-in-95 duration-200">
+            <div id="prize-modal-content" className="w-full max-w-md rounded-2xl bg-white dark:bg-slate-800 shadow-2xl transform transition-all scale-100 animate-in zoom-in-95 duration-200">
               <div className="flex flex-col items-center p-8 text-center md:p-12">
                 <div
                   className="mb-6 flex size-20 items-center justify-center rounded-full text-white animate-bounce"
@@ -275,11 +347,165 @@ const SpinGamePage: React.FC = () => {
                   Present this screen at the counter to redeem your prize.
                 </p>
 
+                <div className="flex gap-3 mt-8 w-full">
+                  <button
+                    onClick={() => {
+                      // Create a simple canvas-based screenshot
+                      const canvas = document.createElement('canvas');
+                      canvas.width = 400;
+                      canvas.height = 300;
+                      const ctx = canvas.getContext('2d');
+                      if (ctx) {
+                        // Background
+                        ctx.fillStyle = '#1e293b';
+                        ctx.fillRect(0, 0, 400, 300);
+
+                        // Border
+                        ctx.strokeStyle = primaryColor;
+                        ctx.lineWidth = 4;
+                        ctx.strokeRect(10, 10, 380, 280);
+
+                        // Text
+                        ctx.fillStyle = '#ffffff';
+                        ctx.font = 'bold 24px sans-serif';
+                        ctx.textAlign = 'center';
+                        ctx.fillText('🎉 Congratulations!', 200, 60);
+
+                        ctx.font = '18px sans-serif';
+                        ctx.fillText('You won:', 200, 100);
+
+                        ctx.fillStyle = primaryColor;
+                        ctx.font = 'bold 32px sans-serif';
+                        ctx.fillText(wonPrize.name.toUpperCase(), 200, 150);
+
+                        ctx.fillStyle = '#94a3b8';
+                        ctx.font = '14px sans-serif';
+                        ctx.fillText(wonPrize.description || '', 200, 190);
+
+                        ctx.fillText('Show this at the counter', 200, 240);
+                        ctx.font = 'bold 12px sans-serif';
+                        ctx.fillText(`${activeTenant?.name || 'SpinTheWheel'}`, 200, 275);
+
+                        // Download
+                        const link = document.createElement('a');
+                        link.download = `prize-${wonPrize.name.replace(/\s+/g, '-').toLowerCase()}.png`;
+                        link.href = canvas.toDataURL('image/png');
+                        link.click();
+                      }
+                    }}
+                    className="flex-1 flex h-12 cursor-pointer items-center justify-center rounded-xl px-5 text-base font-bold text-white transition-colors hover:opacity-90"
+                    style={{ backgroundColor: primaryColor }}
+                  >
+                    <span className="material-symbols-outlined mr-2 !text-lg">download</span>
+                    Save
+                  </button>
+                  <button
+                    onClick={closeModal}
+                    className="flex-1 flex h-12 cursor-pointer items-center justify-center rounded-xl bg-slate-200 dark:bg-slate-700 px-5 text-base font-bold text-slate-800 dark:text-white hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors"
+                  >
+                    Done
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )
+      }
+
+      {/* Lead Capture Modal */}
+      {
+        showLeadModal && !hasProvidedInfo && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+            <div className="w-full max-w-md rounded-2xl bg-white dark:bg-slate-800 shadow-2xl">
+              <form onSubmit={handleLeadSubmit} className="flex flex-col p-8 md:p-10">
+                <div className="text-center mb-6">
+                  <div
+                    className="mb-4 flex size-16 items-center justify-center rounded-full mx-auto"
+                    style={{ backgroundColor: `${primaryColor}20`, color: primaryColor }}
+                  >
+                    <span className="material-symbols-outlined !text-4xl">celebration</span>
+                  </div>
+                  <h3 className="text-2xl font-bold text-slate-900 dark:text-white">Ready to Win?</h3>
+                  <p className="mt-2 text-slate-600 dark:text-slate-400">
+                    Enter your details to spin the wheel!
+                  </p>
+                </div>
+
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                      Email
+                    </label>
+                    <input
+                      type="email"
+                      value={userEmail}
+                      onChange={(e) => setUserEmail(e.target.value)}
+                      placeholder="your@email.com"
+                      className="w-full p-3 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-white"
+                    />
+                  </div>
+                  <div className="text-center text-sm text-slate-400">or</div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                      Phone Number
+                    </label>
+                    <input
+                      type="tel"
+                      value={userPhone}
+                      onChange={(e) => setUserPhone(e.target.value)}
+                      placeholder="+1 (555) 123-4567"
+                      className="w-full p-3 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-white"
+                    />
+                  </div>
+                </div>
+
+                <p className="mt-4 text-xs text-slate-400 text-center">
+                  We'll only use this to send you your prize details.
+                </p>
+
                 <button
-                  onClick={closeModal}
+                  type="submit"
+                  className="mt-6 flex h-12 w-full cursor-pointer items-center justify-center rounded-xl px-5 text-base font-bold text-white transition-colors hover:opacity-90"
+                  style={{ backgroundColor: primaryColor }}
+                >
+                  <span className="material-symbols-outlined mr-2">casino</span>
+                  Let's Spin!
+                </button>
+              </form>
+            </div>
+          </div>
+        )
+      }
+
+      {/* Already Spun Modal */}
+      {
+        alreadySpun && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+            <div className="w-full max-w-md rounded-2xl bg-white dark:bg-slate-800 shadow-2xl">
+              <div className="flex flex-col items-center p-8 text-center">
+                <div className="mb-6 flex size-20 items-center justify-center rounded-full bg-yellow-100 dark:bg-yellow-900/30">
+                  <span className="material-symbols-outlined !text-5xl text-yellow-600 dark:text-yellow-400">schedule</span>
+                </div>
+
+                <h3 className="text-2xl font-bold text-slate-900 dark:text-white">Come Back Tomorrow!</h3>
+                <p className="mt-2 text-slate-600 dark:text-slate-400">
+                  You've already spun the wheel today.
+                </p>
+
+                <div className="mt-6 p-4 w-full bg-slate-50 dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-700">
+                  <p className="text-sm text-slate-600 dark:text-slate-400">
+                    Each person can spin once per day. Try again in:
+                  </p>
+                  <p className="text-2xl font-bold text-slate-900 dark:text-white mt-2">
+                    🕐 24 hours
+                  </p>
+                </div>
+
+                <button
+                  onClick={() => setAlreadySpun(false)}
                   className="mt-8 flex h-12 w-full cursor-pointer items-center justify-center rounded-xl bg-slate-200 dark:bg-slate-700 px-5 text-base font-bold text-slate-800 dark:text-white hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors"
                 >
-                  Done
+                  Got it!
                 </button>
               </div>
             </div>

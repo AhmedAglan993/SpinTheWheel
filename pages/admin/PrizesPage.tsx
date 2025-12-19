@@ -1,21 +1,49 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useData } from '../../contexts/DataContext';
 import { Prize } from '../../types';
+import { projectsAPI } from '../../src/services/api';
+
+interface Project {
+  id: string;
+  name: string;
+  status: string;
+}
 
 const PrizesPage: React.FC = () => {
   const { currentTenant, prizes, addPrize, updatePrize, deletePrize } = useData();
   const [showForm, setShowForm] = useState(false);
   const [editingPrize, setEditingPrize] = useState<Prize | null>(null);
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [selectedProjectFilter, setSelectedProjectFilter] = useState<string>('');
+
+  // Load projects
+  useEffect(() => {
+    const loadProjects = async () => {
+      try {
+        const data = await projectsAPI.getAll();
+        setProjects(data);
+      } catch (error) {
+        console.error('Failed to load projects:', error);
+      }
+    };
+    loadProjects();
+  }, []);
+
+  // Filter prizes by project
+  const filteredPrizes = selectedProjectFilter
+    ? prizes.filter((p: any) => p.projectId === selectedProjectFilter || !p.projectId)
+    : prizes;
 
   // Form State
-  const [newPrize, setNewPrize] = useState<Partial<Prize>>({
+  const [newPrize, setNewPrize] = useState<Partial<Prize> & { projectId?: string }>({
     name: '',
     type: 'Voucher',
     description: '',
     status: 'Active',
     isUnlimited: true,
     quantity: 10,
-    exhaustionBehavior: 'exclude'
+    exhaustionBehavior: 'exclude',
+    projectId: ''
   });
 
   const handleAddPrize = async (e: React.FormEvent) => {
@@ -30,7 +58,8 @@ const PrizesPage: React.FC = () => {
         status: 'Active',
         isUnlimited: newPrize.isUnlimited ?? true,
         quantity: newPrize.isUnlimited ? undefined : newPrize.quantity,
-        exhaustionBehavior: newPrize.exhaustionBehavior || 'exclude'
+        exhaustionBehavior: newPrize.exhaustionBehavior || 'exclude',
+        projectId: newPrize.projectId || undefined
       });
       setShowForm(false);
       setNewPrize({
@@ -40,7 +69,8 @@ const PrizesPage: React.FC = () => {
         status: 'Active',
         isUnlimited: true,
         quantity: 10,
-        exhaustionBehavior: 'exclude'
+        exhaustionBehavior: 'exclude',
+        projectId: ''
       });
     } catch (error) {
       console.error('Failed to add prize:', error);
@@ -72,11 +102,23 @@ const PrizesPage: React.FC = () => {
   return (
     <div className="flex flex-col gap-6">
       {/* Header Actions */}
-      <div className="flex justify-between items-center">
-        <p className="hidden md:block text-slate-500 dark:text-slate-400">Manage the prizes your customers can win.</p>
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div className="flex items-center gap-4">
+          <label className="text-sm font-medium text-slate-500 dark:text-slate-400">Filter by Project:</label>
+          <select
+            value={selectedProjectFilter}
+            onChange={(e) => setSelectedProjectFilter(e.target.value)}
+            className="px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 dark:bg-slate-700"
+          >
+            <option value="">All Projects</option>
+            {projects.map((project) => (
+              <option key={project.id} value={project.id}>{project.name}</option>
+            ))}
+          </select>
+        </div>
         <button
           onClick={() => setShowForm(!showForm)}
-          className="flex items-center gap-2 bg-primary text-white px-6 py-3 rounded-lg font-bold shadow-lg shadow-primary/20 hover:bg-primary-dark transition-colors ml-auto"
+          className="flex items-center gap-2 bg-primary text-white px-6 py-3 rounded-lg font-bold shadow-lg shadow-primary/20 hover:bg-primary-dark transition-colors"
         >
           <span className="material-symbols-outlined">{showForm ? 'close' : 'add'}</span>
           {showForm ? 'Cancel' : 'Add New Prize'}
@@ -154,6 +196,21 @@ const PrizesPage: React.FC = () => {
                 </div>
               </>
             )}
+
+            {/* Project Assignment */}
+            <div className="flex-1 w-full">
+              <label className="text-xs font-bold uppercase text-slate-500 mb-1 block">Project (Optional)</label>
+              <select
+                className="w-full p-2 rounded-lg border border-slate-300 dark:border-slate-600 dark:bg-slate-700"
+                value={newPrize.projectId || ''}
+                onChange={e => setNewPrize({ ...newPrize, projectId: e.target.value })}
+              >
+                <option value="">All Projects</option>
+                {projects.map((project) => (
+                  <option key={project.id} value={project.id}>{project.name}</option>
+                ))}
+              </select>
+            </div>
 
             <button type="submit" className="px-6 py-2 bg-green-600 text-white font-bold rounded-lg hover:bg-green-700">Save</button>
           </form>
@@ -302,9 +359,9 @@ const PrizesPage: React.FC = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
-              {prizes.length === 0 ? (
-                <tr><td colSpan={6} className="p-8 text-center text-slate-500">No prizes added yet.</td></tr>
-              ) : prizes.map((prize) => (
+              {filteredPrizes.length === 0 ? (
+                <tr><td colSpan={6} className="p-8 text-center text-slate-500">No prizes found{selectedProjectFilter ? ' for this project' : ''}.</td></tr>
+              ) : filteredPrizes.map((prize) => (
                 <tr key={prize.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-900 dark:text-white">{prize.name}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500 dark:text-slate-400">{prize.type}</td>

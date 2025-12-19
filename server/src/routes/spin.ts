@@ -246,10 +246,35 @@ router.put('/config', authenticate, async (req: AuthRequest, res: Response) => {
 // POST /api/spin/record - Record a spin result
 router.post('/record', async (req, res: Response) => {
     try {
-        const { tenantId, projectId, userName, userEmail, prizeWon } = req.body;
+        const { tenantId, projectId, userName, userEmail, userPhone, prizeWon } = req.body;
 
         if (!tenantId || !prizeWon) {
             return res.status(400).json({ error: 'Missing required fields' });
+        }
+
+        // Check per-user spin limit (1 spin per day by default)
+        if (userEmail || userPhone) {
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            const existingSpin = await prisma.spinHistory.findFirst({
+                where: {
+                    tenantId,
+                    ...(projectId && { projectId }),
+                    timestamp: { gte: today },
+                    OR: [
+                        ...(userEmail ? [{ userEmail }] : []),
+                        ...(userPhone ? [{ userPhone }] : [])
+                    ]
+                }
+            });
+
+            if (existingSpin) {
+                return res.status(429).json({
+                    error: 'You have already spun today! Come back tomorrow.',
+                    alreadySpun: true
+                });
+            }
         }
 
         // Find the prize that was won to check if it's numbered
@@ -272,13 +297,14 @@ router.post('/record', async (req, res: Response) => {
             });
         }
 
-        // Record the spin
+        // Record the spin with user phone
         const record = await prisma.spinHistory.create({
             data: {
                 tenantId,
                 projectId,
                 userName,
                 userEmail,
+                userPhone,
                 prizeWon
             }
         });

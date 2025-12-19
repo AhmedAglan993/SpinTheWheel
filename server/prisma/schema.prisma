@@ -47,6 +47,10 @@ model Prize {
   description String
   status      String   @default("Active") // Active, Inactive
   
+  // Prize Image
+  imageUrl    String?  // Custom uploaded image URL
+  iconType    String?  // Generic icon: gift, discount, food, voucher, etc.
+  
   // Quantity Management
   isUnlimited        Boolean  @default(true)  // If true, prize is always available
   quantity           Int?     // Current available quantity (null for unlimited)
@@ -111,6 +115,7 @@ model SpinHistory {
   projectId  String?  // Optional: track which project this spin belongs to
   userName   String?  // Name of person who spun
   userEmail  String?  // Email of person who spun
+  userPhone  String?  // Phone of person who spun
   prizeWon   String   // Name of prize won
   timestamp  DateTime @default(now())
 

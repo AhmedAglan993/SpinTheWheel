@@ -8,6 +8,7 @@ import spinRoutes from './routes/spin';
 import contactRoutes from './routes/contact';
 import tenantRoutes from './routes/tenant';
 import projectsRoutes from './routes/projects';
+import statsRoutes from './routes/stats';
 
 // Load environment variables
 dotenv.config();
@@ -40,6 +41,7 @@ app.use('/api/spin', spinRoutes);
 app.use('/api/contact', contactRoutes);
 app.use('/api/tenant', tenantRoutes);
 app.use('/api/projects', projectsRoutes);
+app.use('/api/stats', statsRoutes);
 
 // Health check endpoint
 app.get('/health', (req, res) => {
