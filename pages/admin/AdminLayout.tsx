@@ -6,6 +6,7 @@ const AdminLayout: React.FC = () => {
   const location = useLocation();
 
   const getPageTitle = () => {
+    if (location.pathname.includes('leads')) return 'Collected Leads';
     if (location.pathname.includes('users')) return 'User Management';
     if (location.pathname.includes('prizes')) return 'Prize Management';
     if (location.pathname.includes('tenants')) return 'Clients & Restaurants';
@@ -16,6 +17,7 @@ const AdminLayout: React.FC = () => {
   };
 
   const getPageDescription = () => {
+    if (location.pathname.includes('leads')) return 'View and export leads from your spin wheel campaigns';
     if (location.pathname.includes('users')) return 'View and manage user leads collected from spins';
     if (location.pathname.includes('prizes')) return 'Configure prizes for your spin wheel';
     if (location.pathname.includes('tenants')) return 'Manage client accounts and restaurants';

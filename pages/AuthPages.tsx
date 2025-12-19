@@ -1,7 +1,16 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useData } from '../contexts/DataContext';
-import { firebaseAuth } from '../src/services/firebase';
+
+// Try to import firebase, but provide fallback if not installed
+let firebaseAuth: any = null;
+try {
+  // @ts-ignore
+  const firebase = require('../src/services/firebase');
+  firebaseAuth = firebase.firebaseAuth;
+} catch (e) {
+  console.warn('Firebase not installed - Google sign-in disabled');
+}
 
 export const LoginPage: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -31,13 +40,17 @@ export const LoginPage: React.FC = () => {
   };
 
   const handleGoogleSignIn = async () => {
+    if (!firebaseAuth) {
+      setError('Google sign-in not available. Please use email/password.');
+      return;
+    }
+
     setError('');
     setIsLoading(true);
 
     try {
       const user = await firebaseAuth.signInWithGoogle();
       if (user.email) {
-        // Try to login or register with Firebase user
         const success = await loginWithFirebase(user);
         if (success) {
           navigate('/admin/dashboard');
@@ -65,7 +78,7 @@ export const LoginPage: React.FC = () => {
           <p className="text-slate-500">Log in to manage your campaigns</p>
         </div>
 
-        {/* Social Login Buttons */}
+        {/* Social Login Buttons - Only show if Firebase is available */}
         <div className="space-y-3 mb-6">
           <button
             onClick={handleGoogleSignIn}
@@ -173,6 +186,11 @@ export const SignupPage: React.FC = () => {
   };
 
   const handleGoogleSignUp = async () => {
+    if (!firebaseAuth) {
+      setError('Google sign-up not available. Please use email/password.');
+      return;
+    }
+
     setError('');
     setIsLoading(true);
 
