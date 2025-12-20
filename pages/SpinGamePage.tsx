@@ -21,16 +21,22 @@ const SpinGamePage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
 
   const [showModal, setShowModal] = useState(false);
-  const [showLeadModal, setShowLeadModal] = useState(true); // Show lead capture first
+  const [showLeadModal, setShowLeadModal] = useState(false); // Will show based on settings
   const [isSpinning, setIsSpinning] = useState(false);
   const [rotation, setRotation] = useState(0);
   const [wonPrize, setWonPrize] = useState<Prize | null>(null);
 
-  // Lead capture state
-  const [userEmail, setUserEmail] = useState('');
-  const [userPhone, setUserPhone] = useState('');
+  // Lead capture state - single field for email or phone
+  const [contactValue, setContactValue] = useState('');
   const [hasProvidedInfo, setHasProvidedInfo] = useState(false);
   const [alreadySpun, setAlreadySpun] = useState(false);
+
+  // Spin settings from project
+  const [spinSettings, setSpinSettings] = useState({
+    requireContact: true,
+    enableSpinLimit: true,
+    spinsPerUserPerDay: 1
+  });
 
   useEffect(() => {
     const fetchGameData = async () => {
@@ -70,6 +76,16 @@ const SpinGamePage: React.FC = () => {
         if (response.data.tenantId) {
           setRealTenantId(response.data.tenantId);
         }
+        // Store spin settings
+        if (response.data.spinSettings) {
+          setSpinSettings(response.data.spinSettings);
+          // Show lead modal only if requireContact is true
+          setShowLeadModal(response.data.spinSettings.requireContact);
+          // If contact not required, mark as provided
+          if (!response.data.spinSettings.requireContact) {
+            setHasProvidedInfo(true);
+          }
+        }
         setLoading(false);
       } catch (err: any) {
         console.error('Error fetching game data:', err);
@@ -89,11 +105,16 @@ const SpinGamePage: React.FC = () => {
   // Only allow winning available prizes
   const availablePrizes = displayPrizes.filter((p: any) => p.isAvailable !== false);
 
+  // Auto-detect if contact is email or phone
+  const isEmail = (value: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+  const userEmail = isEmail(contactValue) ? contactValue : '';
+  const userPhone = !isEmail(contactValue) && contactValue ? contactValue : '';
+
   // Handle lead form submission
   const handleLeadSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!userEmail && !userPhone) {
-      alert('Please provide at least an email or phone number.');
+    if (!contactValue.trim()) {
+      alert('Please provide your email or phone number.');
       return;
     }
     setHasProvidedInfo(true);
@@ -444,27 +465,15 @@ const SpinGamePage: React.FC = () => {
                 <div className="space-y-4">
                   <div>
                     <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                      Email
+                      Email or Phone Number
                     </label>
                     <input
-                      type="email"
-                      value={userEmail}
-                      onChange={(e) => setUserEmail(e.target.value)}
-                      placeholder="your@email.com"
+                      type="text"
+                      value={contactValue}
+                      onChange={(e) => setContactValue(e.target.value)}
+                      placeholder="your@email.com or +1 555 123 4567"
                       className="w-full p-3 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-white"
-                    />
-                  </div>
-                  <div className="text-center text-sm text-slate-400">or</div>
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                      Phone Number
-                    </label>
-                    <input
-                      type="tel"
-                      value={userPhone}
-                      onChange={(e) => setUserPhone(e.target.value)}
-                      placeholder="+1 (555) 123-4567"
-                      className="w-full p-3 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-white"
+                      autoFocus
                     />
                   </div>
                 </div>

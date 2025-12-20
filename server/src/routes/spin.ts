@@ -87,7 +87,12 @@ router.get('/config/:id', async (req, res: Response) => {
                 config: project.spinConfig,
                 prizes: availablePrizes,
                 projectId: project.id,
-                tenantId: project.tenantId
+                tenantId: project.tenantId,
+                spinSettings: {
+                    requireContact: project.requireContact,
+                    enableSpinLimit: project.enableSpinLimit,
+                    spinsPerUserPerDay: project.spinsPerUserPerDay
+                }
             });
         }
 
@@ -254,12 +259,24 @@ router.post('/record', async (req, res: Response) => {
             return res.status(400).json({ error: 'Missing required fields' });
         }
 
-        // Check per-user spin limit (1 spin per day by default)
-        if (userEmail || userPhone) {
+        // Get project settings if projectId provided
+        let project = null;
+        if (projectId) {
+            project = await prisma.project.findUnique({
+                where: { id: projectId }
+            });
+        }
+
+        // Check per-user spin limit based on project settings
+        const enableSpinLimit = project?.enableSpinLimit ?? true;
+        const spinsPerUserPerDay = project?.spinsPerUserPerDay ?? 1;
+
+        if (enableSpinLimit && spinsPerUserPerDay > 0 && (userEmail || userPhone)) {
             const today = new Date();
             today.setHours(0, 0, 0, 0);
 
-            const existingSpin = await prisma.spinHistory.findFirst({
+            // Count existing spins today for this user
+            const existingSpins = await prisma.spinHistory.count({
                 where: {
                     tenantId,
                     ...(projectId && { projectId }),
@@ -271,10 +288,15 @@ router.post('/record', async (req, res: Response) => {
                 }
             });
 
-            if (existingSpin) {
+            if (existingSpins >= spinsPerUserPerDay) {
+                const remainingMessage = spinsPerUserPerDay === 1
+                    ? 'You have already spun today! Come back tomorrow.'
+                    : `You have used all ${spinsPerUserPerDay} spins for today! Come back tomorrow.`;
                 return res.status(429).json({
-                    error: 'You have already spun today! Come back tomorrow.',
-                    alreadySpun: true
+                    error: remainingMessage,
+                    alreadySpun: true,
+                    spinsUsed: existingSpins,
+                    spinsAllowed: spinsPerUserPerDay
                 });
             }
         }

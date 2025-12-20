@@ -165,8 +165,13 @@ model Project {
   // Event Constraints
   startDate   DateTime? // When the event starts
   endDate     DateTime? // When the event ends
-  spinLimit   Int?      // Maximum number of spins allowed
+  spinLimit   Int?      // Maximum total spins allowed for project
   currentSpins Int      @default(0) // Current spin count
+  
+  // User Spin Settings
+  requireContact     Boolean @default(true)  // Require email/phone before spin
+  enableSpinLimit    Boolean @default(true)  // Restrict repeat spins by user
+  spinsPerUserPerDay Int     @default(1)     // Number of spins per user per day (0 = unlimited)
   
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt

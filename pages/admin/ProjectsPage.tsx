@@ -11,6 +11,10 @@ interface Project {
     currentSpins: number;
     price?: number;
     isPaid: boolean;
+    // Spin settings
+    requireContact?: boolean;
+    enableSpinLimit?: boolean;
+    spinsPerUserPerDay?: number;
 }
 
 const ProjectsPage: React.FC = () => {
@@ -161,7 +165,10 @@ const ProjectsPage: React.FC = () => {
                 spinLimit: editingProject.spinLimit,
                 startDate: editingProject.startDate,
                 endDate: editingProject.endDate,
-                price: editingProject.price
+                price: editingProject.price,
+                requireContact: editingProject.requireContact,
+                enableSpinLimit: editingProject.enableSpinLimit,
+                spinsPerUserPerDay: editingProject.spinsPerUserPerDay
             });
             setShowEditModal(false);
             setEditingProject(null);
@@ -462,6 +469,51 @@ const ProjectsPage: React.FC = () => {
                                     />
                                 </div>
                             </div>
+
+                            {/* Spin Settings */}
+                            <div className="border-t border-slate-200 dark:border-slate-700 pt-4 mt-4">
+                                <h3 className="text-sm font-semibold text-slate-900 dark:text-white mb-3">Spin Settings</h3>
+                                <div className="space-y-3">
+                                    <label className="flex items-center gap-3 cursor-pointer">
+                                        <input
+                                            type="checkbox"
+                                            checked={editingProject.requireContact ?? true}
+                                            onChange={(e) => setEditingProject({ ...editingProject, requireContact: e.target.checked })}
+                                            className="w-4 h-4 rounded border-slate-300 dark:border-slate-600"
+                                        />
+                                        <span className="text-sm text-slate-700 dark:text-slate-300">
+                                            Require email/phone before spin
+                                        </span>
+                                    </label>
+                                    <label className="flex items-center gap-3 cursor-pointer">
+                                        <input
+                                            type="checkbox"
+                                            checked={editingProject.enableSpinLimit ?? true}
+                                            onChange={(e) => setEditingProject({ ...editingProject, enableSpinLimit: e.target.checked })}
+                                            className="w-4 h-4 rounded border-slate-300 dark:border-slate-600"
+                                        />
+                                        <span className="text-sm text-slate-700 dark:text-slate-300">
+                                            Limit spins per user per day
+                                        </span>
+                                    </label>
+                                    {(editingProject.enableSpinLimit ?? true) && (
+                                        <div className="ml-7">
+                                            <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">
+                                                Spins per user per day
+                                            </label>
+                                            <input
+                                                type="number"
+                                                min="1"
+                                                max="10"
+                                                className="w-24 p-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 dark:bg-slate-800"
+                                                value={editingProject.spinsPerUserPerDay ?? 1}
+                                                onChange={(e) => setEditingProject({ ...editingProject, spinsPerUserPerDay: parseInt(e.target.value) || 1 })}
+                                            />
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+
                             <div className="flex justify-end gap-3 pt-4">
                                 <button
                                     type="button"

@@ -208,6 +208,9 @@ export const projectsAPI = {
         price?: number;
         status?: string;
         isPaid?: boolean;
+        requireContact?: boolean;
+        enableSpinLimit?: boolean;
+        spinsPerUserPerDay?: number;
     }) => {
         const response = await api.put(`/projects/${id}`, data);
         return response.data;
