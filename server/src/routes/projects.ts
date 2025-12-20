@@ -85,7 +85,18 @@ router.get('/:id', authenticate, async (req: AuthRequest, res: Response) => {
 router.put('/:id', authenticate, async (req: AuthRequest, res: Response) => {
     try {
         const { id } = req.params;
-        const { name, startDate, endDate, spinLimit, status, price, isPaid } = req.body;
+        const {
+            name,
+            startDate,
+            endDate,
+            spinLimit,
+            status,
+            price,
+            isPaid,
+            requireContact,
+            enableSpinLimit,
+            spinsPerUserPerDay
+        } = req.body;
 
         const project = await prisma.project.findFirst({
             where: { id, tenantId: req.tenant!.tenantId }
@@ -104,7 +115,10 @@ router.put('/:id', authenticate, async (req: AuthRequest, res: Response) => {
                 spinLimit: spinLimit !== undefined ? parseInt(spinLimit) : undefined,
                 price: price !== undefined ? parseFloat(price) : undefined,
                 status,
-                isPaid: isPaid !== undefined ? isPaid : undefined
+                isPaid: isPaid !== undefined ? isPaid : undefined,
+                requireContact: requireContact !== undefined ? requireContact : undefined,
+                enableSpinLimit: enableSpinLimit !== undefined ? enableSpinLimit : undefined,
+                spinsPerUserPerDay: spinsPerUserPerDay !== undefined ? spinsPerUserPerDay : undefined
             }
         });
 
