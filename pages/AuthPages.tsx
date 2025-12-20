@@ -1,16 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useData } from '../contexts/DataContext';
 
-// Try to import firebase, but provide fallback if not installed
-let firebaseAuth: any = null;
-try {
-  // @ts-ignore
-  const firebase = require('../src/services/firebase');
-  firebaseAuth = firebase.firebaseAuth;
-} catch (e) {
-  console.warn('Firebase not installed - Google sign-in disabled');
-}
+// Import firebase auth directly
+import { firebaseAuth } from '../src/services/firebase';
 
 export const LoginPage: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -40,11 +33,6 @@ export const LoginPage: React.FC = () => {
   };
 
   const handleGoogleSignIn = async () => {
-    if (!firebaseAuth) {
-      setError('Google sign-in not available. Please use email/password.');
-      return;
-    }
-
     setError('');
     setIsLoading(true);
 
@@ -62,6 +50,8 @@ export const LoginPage: React.FC = () => {
       console.error('Google sign-in error:', err);
       if (err.code === 'auth/popup-closed-by-user') {
         setError('Sign-in cancelled');
+      } else if (err.code === 'auth/popup-blocked') {
+        setError('Popup blocked. Please allow popups for this site.');
       } else {
         setError('Google sign-in failed. Please try again.');
       }
@@ -78,7 +68,7 @@ export const LoginPage: React.FC = () => {
           <p className="text-slate-500">Log in to manage your campaigns</p>
         </div>
 
-        {/* Social Login Buttons - Only show if Firebase is available */}
+        {/* Social Login Buttons */}
         <div className="space-y-3 mb-6">
           <button
             onClick={handleGoogleSignIn}
@@ -186,11 +176,6 @@ export const SignupPage: React.FC = () => {
   };
 
   const handleGoogleSignUp = async () => {
-    if (!firebaseAuth) {
-      setError('Google sign-up not available. Please use email/password.');
-      return;
-    }
-
     setError('');
     setIsLoading(true);
 
@@ -208,6 +193,8 @@ export const SignupPage: React.FC = () => {
       console.error('Google sign-up error:', err);
       if (err.code === 'auth/popup-closed-by-user') {
         setError('Sign-up cancelled');
+      } else if (err.code === 'auth/popup-blocked') {
+        setError('Popup blocked. Please allow popups for this site.');
       } else {
         setError('Google sign-up failed. Please try again.');
       }
