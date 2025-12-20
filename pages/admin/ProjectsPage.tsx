@@ -489,13 +489,26 @@ const ProjectsPage: React.FC = () => {
                                         <input
                                             type="checkbox"
                                             checked={editingProject.enableSpinLimit ?? true}
-                                            onChange={(e) => setEditingProject({ ...editingProject, enableSpinLimit: e.target.checked })}
+                                            onChange={(e) => {
+                                                const enableLimit = e.target.checked;
+                                                setEditingProject({
+                                                    ...editingProject,
+                                                    enableSpinLimit: enableLimit,
+                                                    // Auto-enable require contact when spin limit is on
+                                                    ...(enableLimit && { requireContact: true })
+                                                });
+                                            }}
                                             className="w-4 h-4 rounded border-slate-300 dark:border-slate-600"
                                         />
                                         <span className="text-sm text-slate-700 dark:text-slate-300">
                                             Limit spins per user per day
                                         </span>
                                     </label>
+                                    {(editingProject.enableSpinLimit ?? true) && !(editingProject.requireContact ?? true) && (
+                                        <p className="text-xs text-amber-600 dark:text-amber-400 ml-7">
+                                            ⚠️ Contact info is required to track spin limits
+                                        </p>
+                                    )}
                                     {(editingProject.enableSpinLimit ?? true) && (
                                         <div className="ml-7">
                                             <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">

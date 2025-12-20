@@ -79,13 +79,9 @@ const SpinGamePage: React.FC = () => {
         // Store spin settings
         if (response.data.spinSettings) {
           setSpinSettings(response.data.spinSettings);
-          // Show lead modal only if requireContact is true
-          setShowLeadModal(response.data.spinSettings.requireContact);
-          // If contact not required, mark as provided
-          if (!response.data.spinSettings.requireContact) {
-            setHasProvidedInfo(true);
-          }
         }
+        // Always show lead modal on load (user can skip if not required)
+        setShowLeadModal(true);
         setLoading(false);
       } catch (err: any) {
         console.error('Error fetching game data:', err);
@@ -113,10 +109,17 @@ const SpinGamePage: React.FC = () => {
   // Handle lead form submission
   const handleLeadSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!contactValue.trim()) {
+    if (spinSettings.requireContact && !contactValue.trim()) {
       alert('Please provide your email or phone number.');
       return;
     }
+    setHasProvidedInfo(true);
+    setShowLeadModal(false);
+  };
+
+  // Handle skip (when contact not required)
+  const handleSkip = () => {
+    setContactValue('');
     setHasProvidedInfo(true);
     setShowLeadModal(false);
   };
@@ -488,8 +491,19 @@ const SpinGamePage: React.FC = () => {
                   style={{ backgroundColor: primaryColor }}
                 >
                   <span className="material-symbols-outlined mr-2">casino</span>
-                  Let's Spin!
+                  {spinSettings.requireContact ? "Let's Spin!" : 'Continue'}
                 </button>
+
+                {/* Skip button - only show when contact not required */}
+                {!spinSettings.requireContact && (
+                  <button
+                    type="button"
+                    onClick={handleSkip}
+                    className="mt-3 flex h-10 w-full cursor-pointer items-center justify-center rounded-xl px-5 text-sm font-medium text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 transition-colors"
+                  >
+                    Skip for now
+                  </button>
+                )}
               </form>
             </div>
           </div>
