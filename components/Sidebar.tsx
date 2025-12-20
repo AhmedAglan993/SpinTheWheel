@@ -16,6 +16,9 @@ const Sidebar: React.FC = () => {
 
   if (!currentTenant) return null;
 
+  // Check if current user is platform owner
+  const isOwner = (currentTenant as any).isOwner === true;
+
   return (
     <aside className="hidden md:flex flex-col w-64 bg-surface-light dark:bg-surface-dark border-r border-border-light dark:border-border-dark h-screen sticky top-0">
       <div className="flex flex-col h-full p-4">
@@ -27,7 +30,9 @@ const Sidebar: React.FC = () => {
           />
           <div className="flex flex-col overflow-hidden">
             <h1 className="text-base font-bold text-slate-900 dark:text-white truncate">{currentTenant.name}</h1>
-            <p className="text-xs text-slate-500 dark:text-slate-400">Dashboard</p>
+            <p className="text-xs text-slate-500 dark:text-slate-400">
+              {isOwner ? 'Platform Owner' : 'Dashboard'}
+            </p>
           </div>
         </div>
 
@@ -42,8 +47,33 @@ const Sidebar: React.FC = () => {
             )}
           </NavLink>
 
+          {/* Owner-only: All Tenants */}
+          {isOwner && (
+            <>
+              <div className="px-3 py-2 mt-2 text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                Platform
+              </div>
+              <NavLink to="/admin/tenants" className={linkClass}>
+                {({ isActive }) => (
+                  <>
+                    <span className={iconClass(isActive)}>business</span>
+                    All Tenants
+                  </>
+                )}
+              </NavLink>
+              <NavLink to="/admin/contacts" className={linkClass}>
+                {({ isActive }) => (
+                  <>
+                    <span className={iconClass(isActive)}>contact_mail</span>
+                    Contact Requests
+                  </>
+                )}
+              </NavLink>
+            </>
+          )}
+
           <div className="px-3 py-2 mt-2 text-xs font-semibold text-slate-400 uppercase tracking-wider">
-            Agency
+            {isOwner ? 'My Business' : 'Agency'}
           </div>
           <NavLink to="/admin/projects" className={linkClass}>
             {({ isActive }) => (
@@ -82,18 +112,6 @@ const Sidebar: React.FC = () => {
               <>
                 <span className={iconClass(isActive)}>group</span>
                 Collected Leads
-              </>
-            )}
-          </NavLink>
-
-          <div className="px-3 py-2 mt-2 text-xs font-semibold text-slate-400 uppercase tracking-wider">
-            Account
-          </div>
-          <NavLink to="/admin/contacts" className={linkClass}>
-            {({ isActive }) => (
-              <>
-                <span className={iconClass(isActive)}>contact_mail</span>
-                Contact Requests
               </>
             )}
           </NavLink>

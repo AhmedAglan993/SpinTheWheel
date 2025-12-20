@@ -10,6 +10,7 @@ import UsersPage from './pages/admin/UsersPage';
 import ContactRequestsPage from './pages/admin/ContactRequestsPage';
 import ProjectsPage from './pages/admin/ProjectsPage';
 import LeadsPage from './pages/admin/LeadsPage';
+import TenantsPage from './pages/admin/TenantsPage';
 import DemoSpinPage from './pages/DemoSpinPage';
 import ContactFormPage from './pages/ContactFormPage';
 import SpinGamePage from './pages/SpinGamePage';
@@ -56,6 +57,7 @@ const App: React.FC = () => {
           <Route path="dashboard" element={<DashboardPage />} />
           <Route path="projects" element={<ProjectsPage />} />
           <Route path="leads" element={<LeadsPage />} />
+          <Route path="tenants" element={<TenantsPage />} />
           <Route path="settings" element={<SettingsPage />} />
           <Route path="prizes" element={<PrizesPage />} />
           <Route path="users" element={<UsersPage />} />

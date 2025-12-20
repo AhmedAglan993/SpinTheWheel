@@ -232,4 +232,23 @@ export const statsAPI = {
     }
 };
 
+// Owner API (Platform owner only)
+export const ownerAPI = {
+    getTenants: async () => {
+        const response = await api.get('/owner/tenants');
+        return response.data;
+    },
+
+    getStats: async () => {
+        const response = await api.get('/owner/stats');
+        return response.data;
+    },
+
+    getTenantDetails: async (id: string) => {
+        const response = await api.get(`/owner/tenant/${id}`);
+        return response.data;
+    }
+};
+
 export default api;
+
