@@ -15,6 +15,7 @@ const SpinGamePage: React.FC = () => {
 
   const [activeTenant, setActiveTenant] = useState<Tenant | null>(null);
   const [activePrizes, setActivePrizes] = useState<Prize[]>([]);
+  const [projectId, setProjectId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -61,6 +62,10 @@ const SpinGamePage: React.FC = () => {
 
         setActiveTenant(tenantData);
         setActivePrizes(prizes || []);
+        // Store projectId if returned (for project-specific spins)
+        if (response.data.projectId) {
+          setProjectId(response.data.projectId);
+        }
         setLoading(false);
       } catch (err: any) {
         console.error('Error fetching game data:', err);
@@ -132,7 +137,8 @@ const SpinGamePage: React.FC = () => {
       // Record the spin to backend with user info
       try {
         await axios.post(`${API_URL}/spin/record`, {
-          tenantId: tenantId,
+          tenantId: activeTenant?.id || tenantId,
+          projectId: projectId,
           userName: '',
           userEmail: userEmail,
           userPhone: userPhone,

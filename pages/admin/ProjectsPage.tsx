@@ -18,7 +18,9 @@ const ProjectsPage: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [showQRModal, setShowQRModal] = useState(false);
+    const [showEditModal, setShowEditModal] = useState(false);
     const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+    const [editingProject, setEditingProject] = useState<Project | null>(null);
     const qrCanvasRef = useRef<HTMLCanvasElement>(null);
     const [newProject, setNewProject] = useState({
         name: '',
@@ -145,6 +147,30 @@ const ProjectsPage: React.FC = () => {
         }
     };
 
+    const openEditModal = (project: Project) => {
+        setEditingProject({ ...project });
+        setShowEditModal(true);
+    };
+
+    const handleEditProject = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!editingProject) return;
+        try {
+            await projectsAPI.update(editingProject.id, {
+                name: editingProject.name,
+                spinLimit: editingProject.spinLimit,
+                startDate: editingProject.startDate,
+                endDate: editingProject.endDate,
+                price: editingProject.price
+            });
+            setShowEditModal(false);
+            setEditingProject(null);
+            fetchProjects();
+        } catch (error) {
+            console.error('Failed to update project:', error);
+        }
+    };
+
     if (loading) return <div className="p-8 text-center">Loading projects...</div>;
 
     return (
@@ -241,6 +267,13 @@ const ProjectsPage: React.FC = () => {
                                                 <option value="Active">Active</option>
                                                 <option value="Completed">Completed</option>
                                             </select>
+                                            <button
+                                                onClick={() => openEditModal(project)}
+                                                className="p-1.5 text-slate-500 hover:text-amber-500 hover:bg-amber-500/10 rounded-md transition-colors"
+                                                title="Edit Project"
+                                            >
+                                                <span className="material-symbols-outlined !text-lg">edit</span>
+                                            </button>
                                         </div>
                                     </td>
                                 </tr>
@@ -363,6 +396,88 @@ const ProjectsPage: React.FC = () => {
                                 Download
                             </button>
                         </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Edit Project Modal */}
+            {showEditModal && editingProject && (
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white dark:bg-slate-900 rounded-xl w-full max-w-md shadow-xl">
+                        <div className="p-6 border-b border-slate-200 dark:border-slate-700">
+                            <h2 className="text-xl font-bold text-slate-900 dark:text-white">Edit Project</h2>
+                        </div>
+                        <form onSubmit={handleEditProject} className="p-6 space-y-4">
+                            <div>
+                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Project Name</label>
+                                <input
+                                    type="text"
+                                    className="w-full p-2 rounded-lg border border-slate-300 dark:border-slate-600 dark:bg-slate-800"
+                                    value={editingProject.name}
+                                    onChange={(e) => setEditingProject({ ...editingProject, name: e.target.value })}
+                                    required
+                                />
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Start Date</label>
+                                    <input
+                                        type="date"
+                                        className="w-full p-2 rounded-lg border border-slate-300 dark:border-slate-600 dark:bg-slate-800"
+                                        value={editingProject.startDate?.split('T')[0] || ''}
+                                        onChange={(e) => setEditingProject({ ...editingProject, startDate: e.target.value })}
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">End Date</label>
+                                    <input
+                                        type="date"
+                                        className="w-full p-2 rounded-lg border border-slate-300 dark:border-slate-600 dark:bg-slate-800"
+                                        value={editingProject.endDate?.split('T')[0] || ''}
+                                        onChange={(e) => setEditingProject({ ...editingProject, endDate: e.target.value })}
+                                    />
+                                </div>
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Spin Limit (per user/day)</label>
+                                    <input
+                                        type="number"
+                                        min="0"
+                                        className="w-full p-2 rounded-lg border border-slate-300 dark:border-slate-600 dark:bg-slate-800"
+                                        value={editingProject.spinLimit || ''}
+                                        onChange={(e) => setEditingProject({ ...editingProject, spinLimit: parseInt(e.target.value) || undefined })}
+                                        placeholder="Unlimited"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Price ($)</label>
+                                    <input
+                                        type="number"
+                                        step="0.01"
+                                        min="0"
+                                        className="w-full p-2 rounded-lg border border-slate-300 dark:border-slate-600 dark:bg-slate-800"
+                                        value={editingProject.price || ''}
+                                        onChange={(e) => setEditingProject({ ...editingProject, price: parseFloat(e.target.value) || undefined })}
+                                    />
+                                </div>
+                            </div>
+                            <div className="flex justify-end gap-3 pt-4">
+                                <button
+                                    type="button"
+                                    onClick={() => { setShowEditModal(false); setEditingProject(null); }}
+                                    className="px-4 py-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    type="submit"
+                                    className="px-4 py-2 bg-primary hover:bg-primary-dark text-white rounded-lg transition-colors"
+                                >
+                                    Save Changes
+                                </button>
+                            </div>
+                        </form>
                     </div>
                 </div>
             )}
