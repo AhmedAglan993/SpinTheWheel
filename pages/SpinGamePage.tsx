@@ -16,6 +16,7 @@ const SpinGamePage: React.FC = () => {
   const [activeTenant, setActiveTenant] = useState<Tenant | null>(null);
   const [activePrizes, setActivePrizes] = useState<Prize[]>([]);
   const [projectId, setProjectId] = useState<string | null>(null);
+  const [realTenantId, setRealTenantId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -48,7 +49,7 @@ const SpinGamePage: React.FC = () => {
 
         // Convert the minimal tenant data to our Tenant type with all theme colors
         const tenantData: Tenant = {
-          id: tenantId,
+          id: tenant.id || tenantId,
           name: tenant.name,
           ownerName: '',
           email: '',
@@ -62,9 +63,12 @@ const SpinGamePage: React.FC = () => {
 
         setActiveTenant(tenantData);
         setActivePrizes(prizes || []);
-        // Store projectId if returned (for project-specific spins)
+        // Store projectId and real tenantId if returned (for project-specific spins)
         if (response.data.projectId) {
           setProjectId(response.data.projectId);
+        }
+        if (response.data.tenantId) {
+          setRealTenantId(response.data.tenantId);
         }
         setLoading(false);
       } catch (err: any) {
@@ -137,7 +141,7 @@ const SpinGamePage: React.FC = () => {
       // Record the spin to backend with user info
       try {
         await axios.post(`${API_URL}/spin/record`, {
-          tenantId: activeTenant?.id || tenantId,
+          tenantId: realTenantId || activeTenant?.id || tenantId,
           projectId: projectId,
           userName: '',
           userEmail: userEmail,

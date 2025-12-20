@@ -76,6 +76,7 @@ router.get('/config/:id', async (req, res: Response) => {
 
             return res.json({
                 tenant: {
+                    id: project.tenantId,
                     name: project.tenant.name,
                     logo: project.tenant.logo,
                     primaryColor: project.tenant.primaryColor,
@@ -85,7 +86,8 @@ router.get('/config/:id', async (req, res: Response) => {
                 },
                 config: project.spinConfig,
                 prizes: availablePrizes,
-                projectId: project.id
+                projectId: project.id,
+                tenantId: project.tenantId
             });
         }
 
