@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:xhtml="http://www.w3.org/1999/xhtml">
+  
+  <!-- Home Page (English) -->
+  <url>
+    <loc>https://spinify.seqedgames.com/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://spinify.seqedgames.com/"/>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://spinify.seqedgames.com/#/ar"/>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
+  
+  <!-- Demo Page -->
+  <url>
+    <loc>https://spinify.seqedgames.com/#/demo</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  
+  <!-- Contact Page -->
+  <url>
+    <loc>https://spinify.seqedgames.com/#/contact</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  
+</urlset>
