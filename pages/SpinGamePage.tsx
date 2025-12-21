@@ -80,9 +80,17 @@ const SpinGamePage: React.FC = () => {
         // Store spin settings
         if (response.data.spinSettings) {
           setSpinSettings(response.data.spinSettings);
+          // Only show lead modal if requireContact is true
+          if (response.data.spinSettings.requireContact) {
+            setShowLeadModal(true);
+          } else {
+            // Booth mode: skip lead modal entirely
+            setHasProvidedInfo(true);
+          }
+        } else {
+          // Default: show lead modal
+          setShowLeadModal(true);
         }
-        // Always show lead modal on load (user can skip if not required)
-        setShowLeadModal(true);
         setLoading(false);
       } catch (err: any) {
         console.error('Error fetching game data:', err);
@@ -399,9 +407,9 @@ const SpinGamePage: React.FC = () => {
                       Scan this QR code with your phone to claim your prize
                     </p>
                     <img
-                      src={`https://chart.googleapis.com/chart?cht=qr&chs=200x200&chl=${encodeURIComponent(window.location.origin + '/#/redeem/' + redemptionToken)}&choe=UTF-8`}
+                      src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(window.location.origin + '/#/redeem/' + redemptionToken)}`}
                       alt="Redemption QR Code"
-                      className="w-48 h-48 rounded-lg border-4 border-white shadow-lg"
+                      className="w-48 h-48 rounded-lg border-4 border-white shadow-lg bg-white"
                     />
                     <p className="text-xs text-slate-400 text-center max-w-xs">
                       Enter your email or phone on the redemption page to save your prize

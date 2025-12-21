@@ -85,8 +85,8 @@ const ProjectsPage: React.FC = () => {
         canvas.width = size;
         canvas.height = size;
 
-        // Use Google Charts QR API to generate real QR code
-        const qrApiUrl = `https://chart.googleapis.com/chart?cht=qr&chs=${size}x${size}&chl=${encodeURIComponent(text)}&choe=UTF-8`;
+        // Use QRServer API to generate real QR code
+        const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=${size}x${size}&data=${encodeURIComponent(text)}`;
 
         const img = new Image();
         img.crossOrigin = 'anonymous';
