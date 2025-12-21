@@ -10,7 +10,7 @@ interface Project {
 }
 
 const PrizesPage: React.FC = () => {
-  const { currentTenant, prizes, addPrize, updatePrize, deletePrize } = useData();
+  const { currentTenant, prizes, addPrize, updatePrize, deletePrize, setSelectedProjectId, refreshPrizes } = useData();
   const [showForm, setShowForm] = useState(false);
   const [editingPrize, setEditingPrize] = useState<Prize | null>(null);
   const [projects, setProjects] = useState<Project[]>([]);
@@ -29,10 +29,13 @@ const PrizesPage: React.FC = () => {
     loadProjects();
   }, []);
 
-  // Filter prizes by project
-  const filteredPrizes = selectedProjectFilter
-    ? prizes.filter((p: any) => p.projectId === selectedProjectFilter || !p.projectId)
-    : prizes;
+  // When project filter changes, update context and refresh prizes from server
+  const handleProjectFilterChange = async (projectId: string) => {
+    setSelectedProjectFilter(projectId);
+    setSelectedProjectId(projectId || null);
+    // Fetch prizes for the selected project (or all if empty)
+    await refreshPrizes(projectId || null);
+  };
 
   // Form State
   const [newPrize, setNewPrize] = useState<Partial<Prize> & { projectId?: string }>({
@@ -107,7 +110,7 @@ const PrizesPage: React.FC = () => {
           <label className="text-sm font-medium text-slate-500 dark:text-slate-400">Filter by Project:</label>
           <select
             value={selectedProjectFilter}
-            onChange={(e) => setSelectedProjectFilter(e.target.value)}
+            onChange={(e) => handleProjectFilterChange(e.target.value)}
             className="px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 dark:bg-slate-700"
           >
             <option value="">All Projects</option>
@@ -359,9 +362,9 @@ const PrizesPage: React.FC = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
-              {filteredPrizes.length === 0 ? (
+              {prizes.length === 0 ? (
                 <tr><td colSpan={6} className="p-8 text-center text-slate-500">No prizes found{selectedProjectFilter ? ' for this project' : ''}.</td></tr>
-              ) : filteredPrizes.map((prize) => (
+              ) : prizes.map((prize) => (
                 <tr key={prize.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-900 dark:text-white">{prize.name}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500 dark:text-slate-400">{prize.type}</td>

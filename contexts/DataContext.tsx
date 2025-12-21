@@ -17,6 +17,10 @@ interface DataContextType {
   users: User[];
   contactRequests: ContactRequest[];
 
+  // Project filtering for prizes
+  selectedProjectId: string | null;
+  setSelectedProjectId: (projectId: string | null) => void;
+
   // Actions
   addPrize: (prize: Omit<Prize, 'id' | 'tenantId' | 'createdAt' | 'updatedAt'>) => Promise<void>;
   deletePrize: (id: string) => Promise<void>;
@@ -25,7 +29,7 @@ interface DataContextType {
   deleteUser: (id: string) => Promise<void>;
 
   // Refresh functions
-  refreshPrizes: () => Promise<void>;
+  refreshPrizes: (projectId?: string | null) => Promise<void>;
   refreshUsers: () => Promise<void>;
 }
 
@@ -35,6 +39,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [currentTenant, setCurrentTenant] = useState<Tenant | null>(null);
   const [prizes, setPrizes] = useState<Prize[]>([]);
   const [users, setUsers] = useState<User[]>([]);
+  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
   const [contactRequests, setContactRequests] = useState<ContactRequest[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -155,9 +160,11 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   // Prize Actions
-  const refreshPrizes = async () => {
+  const refreshPrizes = async (projectId?: string | null) => {
     try {
-      const prizesData = await prizesAPI.getAll();
+      // Use passed projectId, or fall back to selectedProjectId, or undefined for all
+      const filterProjectId = projectId !== undefined ? projectId : selectedProjectId;
+      const prizesData = await prizesAPI.getAll(filterProjectId || undefined);
       setPrizes(prizesData);
     } catch (error) {
       console.error('Failed to refresh prizes:', error);
@@ -167,7 +174,8 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const addPrize = async (prize: Omit<Prize, 'id' | 'tenantId' | 'createdAt' | 'updatedAt'>) => {
     try {
       await prizesAPI.create(prize);
-      await refreshPrizes();
+      // Refresh with current filter to maintain view consistency
+      await refreshPrizes(selectedProjectId);
     } catch (error) {
       console.error('Failed to add prize:', error);
       throw error;
@@ -177,7 +185,8 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const deletePrize = async (id: string) => {
     try {
       await prizesAPI.delete(id);
-      await refreshPrizes();
+      // Refresh with current filter to maintain view consistency
+      await refreshPrizes(selectedProjectId);
     } catch (error) {
       console.error('Failed to delete prize:', error);
       throw error;
@@ -187,7 +196,8 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const updatePrize = async (id: string, updates: Partial<Prize>) => {
     try {
       await prizesAPI.update(id, updates);
-      await refreshPrizes();
+      // Refresh with current filter to maintain view consistency
+      await refreshPrizes(selectedProjectId);
     } catch (error) {
       console.error('Failed to update prize:', error);
       throw error;
@@ -236,6 +246,8 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       prizes,
       users,
       contactRequests,
+      selectedProjectId,
+      setSelectedProjectId,
       addPrize,
       deletePrize,
       updatePrize,

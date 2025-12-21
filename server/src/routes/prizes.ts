@@ -11,11 +11,12 @@ router.get('/', authenticate, async (req: AuthRequest, res: Response) => {
 
         const whereClause: any = { tenantId: req.tenant!.tenantId };
 
-        // Only filter by projectId if explicitly provided
+        // Filter by projectId if explicitly provided
         if (projectId && projectId !== 'all') {
+            // When filtering by a specific project, only show that project's prizes
             whereClause.projectId = String(projectId);
         }
-        // If no filter, show all prizes for the tenant
+        // If no filter (empty string or 'all'), show all prizes for the tenant
 
         const prizes = await prisma.prize.findMany({
             where: whereClause,
