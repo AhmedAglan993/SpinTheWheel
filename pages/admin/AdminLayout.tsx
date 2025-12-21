@@ -46,12 +46,19 @@ const AdminLayout: React.FC = () => {
 
             {/* Quick Actions */}
             <div className="flex items-center gap-3">
-              <button className="p-2 hover:bg-surface-elevated-light dark:hover:bg-surface-elevated-dark rounded-lg transition-colors">
+              <button
+                className="p-2 hover:bg-surface-elevated-light dark:hover:bg-surface-elevated-dark rounded-lg transition-colors"
+                title="Notifications (Coming soon)"
+              >
                 <span className="material-symbols-outlined text-text-muted-light dark:text-text-muted-dark">notifications</span>
               </button>
-              <button className="p-2 hover:bg-surface-elevated-light dark:hover:bg-surface-elevated-dark rounded-lg transition-colors">
+              <a
+                href="#/admin/settings"
+                className="p-2 hover:bg-surface-elevated-light dark:hover:bg-surface-elevated-dark rounded-lg transition-colors"
+                title="Settings"
+              >
                 <span className="material-symbols-outlined text-text-muted-light dark:text-text-muted-dark">settings</span>
-              </button>
+              </a>
             </div>
           </div>
         </header>
