@@ -68,7 +68,7 @@ model Prize {
   tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   project     Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
-  @@unique([tenantId, name])
+  @@unique([tenantId, projectId, name])
   @@map("prizes")
 }
 
