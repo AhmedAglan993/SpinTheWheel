@@ -1,9 +1,11 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { useData } from '../contexts/DataContext';
+import { useLanguage } from '../contexts/LanguageContext';
 
 const Sidebar: React.FC = () => {
   const { currentTenant, logout } = useData();
+  const { t, isRTL } = useLanguage();
 
   const linkClass = ({ isActive }: { isActive: boolean }) =>
     `flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors ${isActive
@@ -20,7 +22,7 @@ const Sidebar: React.FC = () => {
   const isOwner = (currentTenant as any).isOwner === true;
 
   return (
-    <aside className="hidden md:flex flex-col w-64 bg-surface-light dark:bg-surface-dark border-r border-border-light dark:border-border-dark h-screen sticky top-0">
+    <aside className={`hidden md:flex flex-col w-64 bg-surface-light dark:bg-surface-dark border-${isRTL ? 'l' : 'r'} border-border-light dark:border-border-dark h-screen sticky top-0`}>
       <div className="flex flex-col h-full p-4">
         {/* Logo Area */}
         <div className="flex items-center gap-3 p-2 mb-6">
@@ -31,7 +33,7 @@ const Sidebar: React.FC = () => {
           <div className="flex flex-col overflow-hidden">
             <h1 className="text-base font-bold text-slate-900 dark:text-white truncate">{currentTenant.name}</h1>
             <p className="text-xs text-slate-500 dark:text-slate-400">
-              {isOwner ? 'Platform Owner' : 'Dashboard'}
+              {isOwner ? t('settings.platformOwner') : t('dashboard.title')}
             </p>
           </div>
         </div>
@@ -42,7 +44,7 @@ const Sidebar: React.FC = () => {
             {({ isActive }) => (
               <>
                 <span className={iconClass(isActive)}>dashboard</span>
-                Overview
+                {t('nav.overview')}
               </>
             )}
           </NavLink>
@@ -51,13 +53,13 @@ const Sidebar: React.FC = () => {
           {isOwner && (
             <>
               <div className="px-3 py-2 mt-2 text-xs font-semibold text-slate-400 uppercase tracking-wider">
-                Platform
+                {t('nav.platform')}
               </div>
               <NavLink to="/admin/tenants" className={linkClass}>
                 {({ isActive }) => (
                   <>
                     <span className={iconClass(isActive)}>business</span>
-                    Clients & Restaurants
+                    {t('nav.clientsRestaurants')}
                   </>
                 )}
               </NavLink>
@@ -65,7 +67,7 @@ const Sidebar: React.FC = () => {
                 {({ isActive }) => (
                   <>
                     <span className={iconClass(isActive)}>contact_mail</span>
-                    Contact Requests
+                    {t('nav.contactRequests')}
                   </>
                 )}
               </NavLink>
@@ -73,7 +75,7 @@ const Sidebar: React.FC = () => {
                 {({ isActive }) => (
                   <>
                     <span className={iconClass(isActive)}>settings</span>
-                    Settings
+                    {t('nav.settings')}
                   </>
                 )}
               </NavLink>
@@ -84,25 +86,25 @@ const Sidebar: React.FC = () => {
           {!isOwner && (
             <>
               <div className="px-3 py-2 mt-2 text-xs font-semibold text-slate-400 uppercase tracking-wider">
-                Agency
+                {t('nav.agency')}
               </div>
               <NavLink to="/admin/projects" className={linkClass}>
                 {({ isActive }) => (
                   <>
                     <span className={iconClass(isActive)}>folder</span>
-                    Projects
+                    {t('nav.projects')}
                   </>
                 )}
               </NavLink>
 
               <div className="px-3 py-2 mt-2 text-xs font-semibold text-slate-400 uppercase tracking-wider">
-                Game Setup
+                {t('nav.gameSetup')}
               </div>
               <NavLink to="/admin/settings" className={linkClass}>
                 {({ isActive }) => (
                   <>
                     <span className={iconClass(isActive)}>tune</span>
-                    Customization
+                    {t('nav.customization')}
                   </>
                 )}
               </NavLink>
@@ -110,19 +112,19 @@ const Sidebar: React.FC = () => {
                 {({ isActive }) => (
                   <>
                     <span className={iconClass(isActive)}>emoji_events</span>
-                    Prizes
+                    {t('nav.prizes')}
                   </>
                 )}
               </NavLink>
 
               <div className="px-3 py-2 mt-2 text-xs font-semibold text-slate-400 uppercase tracking-wider">
-                Data
+                {t('nav.data')}
               </div>
               <NavLink to="/admin/leads" className={linkClass}>
                 {({ isActive }) => (
                   <>
                     <span className={iconClass(isActive)}>group</span>
-                    Collected Leads
+                    {t('nav.collectedLeads')}
                   </>
                 )}
               </NavLink>
@@ -134,7 +136,7 @@ const Sidebar: React.FC = () => {
         <div className="mt-auto flex flex-col gap-1">
           <button onClick={logout} className="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg text-text-light dark:text-text-dark hover:bg-surface-elevated-light dark:hover:bg-surface-elevated-dark transition-colors w-full text-left">
             <span className="material-symbols-outlined">logout</span>
-            Sign Out
+            {t('common.signOut')}
           </button>
         </div>
       </div>

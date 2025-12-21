@@ -2,6 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
 import { DataProvider } from './contexts/DataContext';
+import { LanguageProvider } from './contexts/LanguageContext';
 import { ErrorBoundary } from './components/ErrorBoundary';
 
 const rootElement = document.getElementById('root');
@@ -12,10 +13,12 @@ if (!rootElement) {
 const root = ReactDOM.createRoot(rootElement);
 root.render(
   <React.StrictMode>
-    <DataProvider>
-      <ErrorBoundary>
-        <App />
-      </ErrorBoundary>
-    </DataProvider>
+    <LanguageProvider>
+      <DataProvider>
+        <ErrorBoundary>
+          <App />
+        </ErrorBoundary>
+      </DataProvider>
+    </LanguageProvider>
   </React.StrictMode>
 );
