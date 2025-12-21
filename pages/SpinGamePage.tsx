@@ -30,6 +30,7 @@ const SpinGamePage: React.FC = () => {
   const [contactValue, setContactValue] = useState('');
   const [hasProvidedInfo, setHasProvidedInfo] = useState(false);
   const [alreadySpun, setAlreadySpun] = useState(false);
+  const [redemptionToken, setRedemptionToken] = useState<string | null>(null);
 
   // Spin settings from project
   const [spinSettings, setSpinSettings] = useState({
@@ -164,7 +165,7 @@ const SpinGamePage: React.FC = () => {
     setTimeout(async () => {
       // Record the spin to backend with user info
       try {
-        await axios.post(`${API_URL}/spin/record`, {
+        const recordResponse = await axios.post(`${API_URL}/spin/record`, {
           tenantId: realTenantId || activeTenant?.id || tenantId,
           projectId: projectId,
           userName: '',
@@ -172,6 +173,11 @@ const SpinGamePage: React.FC = () => {
           userPhone: userPhone,
           prizeWon: selectedPrize.name
         });
+
+        // Store redemption token if returned (booth mode)
+        if (recordResponse.data.redemptionToken) {
+          setRedemptionToken(recordResponse.data.redemptionToken);
+        }
 
         // Refresh prizes to get updated quantities
         const response = await axios.get(`${API_URL}/spin/config/${tenantId}`);
@@ -301,7 +307,8 @@ const SpinGamePage: React.FC = () => {
                         stroke="white"
                         strokeWidth="0.5"
                       />
-                      <g transform={`translate(50,50) rotate(${rotationAngle}) translate(25, 0)`}>
+                      {/* Prize name - positioned in middle of slice */}
+                      <g transform={`translate(50,50) rotate(${rotationAngle}) translate(28, 0)`}>
                         <text
                           fill="white"
                           fontSize="3.5"
@@ -312,15 +319,19 @@ const SpinGamePage: React.FC = () => {
                         >
                           {prize.name.length > 12 ? prize.name.substring(0, 10) + '..' : prize.name}
                         </text>
-                        {/* Prize count badge */}
+                      </g>
+                      {/* Quantity badge - on outer edge */}
+                      <g transform={`translate(50,50) rotate(${rotationAngle}) translate(43, 0)`}>
+                        <circle r="4" fill="white" fillOpacity="0.9" />
                         <text
-                          fill="rgba(255,255,255,0.7)"
-                          fontSize="2"
+                          fill={wheelColors[i % wheelColors.length]}
+                          fontSize="3"
+                          fontWeight="bold"
                           textAnchor="middle"
                           dominantBaseline="middle"
-                          y="4"
+                          className="drop-shadow-sm"
                         >
-                          {(prize as any).isUnlimited ? '∞' : `${(prize as any).quantity || 0} left`}
+                          {(prize as any).isUnlimited ? '∞' : (prize as any).quantity || 0}
                         </text>
                       </g>
                     </g>
@@ -381,65 +392,93 @@ const SpinGamePage: React.FC = () => {
                   Present this screen at the counter to redeem your prize.
                 </p>
 
-                <div className="flex gap-3 mt-8 w-full">
-                  <button
-                    onClick={() => {
-                      // Create a simple canvas-based screenshot
-                      const canvas = document.createElement('canvas');
-                      canvas.width = 400;
-                      canvas.height = 300;
-                      const ctx = canvas.getContext('2d');
-                      if (ctx) {
-                        // Background
-                        ctx.fillStyle = '#1e293b';
-                        ctx.fillRect(0, 0, 400, 300);
+                {/* Booth mode: Show QR code to redeem on phone */}
+                {redemptionToken ? (
+                  <div className="mt-6 flex flex-col items-center gap-4">
+                    <p className="text-sm text-slate-500 dark:text-slate-400 text-center">
+                      Scan this QR code with your phone to claim your prize
+                    </p>
+                    <img
+                      src={`https://chart.googleapis.com/chart?cht=qr&chs=200x200&chl=${encodeURIComponent(window.location.origin + '/#/redeem/' + redemptionToken)}&choe=UTF-8`}
+                      alt="Redemption QR Code"
+                      className="w-48 h-48 rounded-lg border-4 border-white shadow-lg"
+                    />
+                    <p className="text-xs text-slate-400 text-center max-w-xs">
+                      Enter your email or phone on the redemption page to save your prize
+                    </p>
+                    <button
+                      onClick={() => {
+                        setShowModal(false);
+                        setRedemptionToken(null);
+                      }}
+                      className="mt-4 flex h-12 w-full cursor-pointer items-center justify-center rounded-xl bg-slate-200 dark:bg-slate-700 px-5 text-base font-bold text-slate-800 dark:text-white hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors"
+                    >
+                      <span className="material-symbols-outlined mr-2">refresh</span>
+                      Reset for Next Person
+                    </button>
+                  </div>
+                ) : (
+                  /* Normal mode: Show save image button */
+                  <div className="flex gap-3 mt-8 w-full">
+                    <button
+                      onClick={() => {
+                        // Create a simple canvas-based screenshot
+                        const canvas = document.createElement('canvas');
+                        canvas.width = 400;
+                        canvas.height = 300;
+                        const ctx = canvas.getContext('2d');
+                        if (ctx) {
+                          // Background
+                          ctx.fillStyle = '#1e293b';
+                          ctx.fillRect(0, 0, 400, 300);
 
-                        // Border
-                        ctx.strokeStyle = primaryColor;
-                        ctx.lineWidth = 4;
-                        ctx.strokeRect(10, 10, 380, 280);
+                          // Border
+                          ctx.strokeStyle = primaryColor;
+                          ctx.lineWidth = 4;
+                          ctx.strokeRect(10, 10, 380, 280);
 
-                        // Text
-                        ctx.fillStyle = '#ffffff';
-                        ctx.font = 'bold 24px sans-serif';
-                        ctx.textAlign = 'center';
-                        ctx.fillText('🎉 Congratulations!', 200, 60);
+                          // Text
+                          ctx.fillStyle = '#ffffff';
+                          ctx.font = 'bold 24px sans-serif';
+                          ctx.textAlign = 'center';
+                          ctx.fillText('🎉 Congratulations!', 200, 60);
 
-                        ctx.font = '18px sans-serif';
-                        ctx.fillText('You won:', 200, 100);
+                          ctx.font = '18px sans-serif';
+                          ctx.fillText('You won:', 200, 100);
 
-                        ctx.fillStyle = primaryColor;
-                        ctx.font = 'bold 32px sans-serif';
-                        ctx.fillText(wonPrize.name.toUpperCase(), 200, 150);
+                          ctx.fillStyle = primaryColor;
+                          ctx.font = 'bold 32px sans-serif';
+                          ctx.fillText(wonPrize.name.toUpperCase(), 200, 150);
 
-                        ctx.fillStyle = '#94a3b8';
-                        ctx.font = '14px sans-serif';
-                        ctx.fillText(wonPrize.description || '', 200, 190);
+                          ctx.fillStyle = '#94a3b8';
+                          ctx.font = '14px sans-serif';
+                          ctx.fillText(wonPrize.description || '', 200, 190);
 
-                        ctx.fillText('Show this at the counter', 200, 240);
-                        ctx.font = 'bold 12px sans-serif';
-                        ctx.fillText(`${activeTenant?.name || 'SpinTheWheel'}`, 200, 275);
+                          ctx.fillText('Show this at the counter', 200, 240);
+                          ctx.font = 'bold 12px sans-serif';
+                          ctx.fillText(`${activeTenant?.name || 'SpinTheWheel'}`, 200, 275);
 
-                        // Download
-                        const link = document.createElement('a');
-                        link.download = `prize-${wonPrize.name.replace(/\s+/g, '-').toLowerCase()}.png`;
-                        link.href = canvas.toDataURL('image/png');
-                        link.click();
-                      }
-                    }}
-                    className="flex-1 flex h-12 cursor-pointer items-center justify-center rounded-xl px-5 text-base font-bold text-white transition-colors hover:opacity-90"
-                    style={{ backgroundColor: primaryColor }}
-                  >
-                    <span className="material-symbols-outlined mr-2 !text-lg">download</span>
-                    Save
-                  </button>
-                  <button
-                    onClick={closeModal}
-                    className="flex-1 flex h-12 cursor-pointer items-center justify-center rounded-xl bg-slate-200 dark:bg-slate-700 px-5 text-base font-bold text-slate-800 dark:text-white hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors"
-                  >
-                    Done
-                  </button>
-                </div>
+                          // Download
+                          const link = document.createElement('a');
+                          link.download = `prize-${wonPrize.name.replace(/\s+/g, '-').toLowerCase()}.png`;
+                          link.href = canvas.toDataURL('image/png');
+                          link.click();
+                        }
+                      }}
+                      className="flex-1 flex h-12 cursor-pointer items-center justify-center rounded-xl px-5 text-base font-bold text-white transition-colors hover:opacity-90"
+                      style={{ backgroundColor: primaryColor }}
+                    >
+                      <span className="material-symbols-outlined mr-2 !text-lg">download</span>
+                      Save
+                    </button>
+                    <button
+                      onClick={closeModal}
+                      className="flex-1 flex h-12 cursor-pointer items-center justify-center rounded-xl bg-slate-200 dark:bg-slate-700 px-5 text-base font-bold text-slate-800 dark:text-white hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors"
+                    >
+                      Done
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
           </div>

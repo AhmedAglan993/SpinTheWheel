@@ -76,8 +76,8 @@ const ProjectsPage: React.FC = () => {
         }
     };
 
-    // Generate QR code on canvas
-    const generateQRCode = (text: string, canvas: HTMLCanvasElement) => {
+    // Generate QR code on canvas using QR API
+    const generateQRCode = async (text: string, canvas: HTMLCanvasElement) => {
         const ctx = canvas.getContext('2d');
         if (!ctx) return;
 
@@ -85,37 +85,28 @@ const ProjectsPage: React.FC = () => {
         canvas.width = size;
         canvas.height = size;
 
-        // Simple QR-like pattern (for demo - in production use a real QR library)
-        ctx.fillStyle = '#ffffff';
-        ctx.fillRect(0, 0, size, size);
+        // Use Google Charts QR API to generate real QR code
+        const qrApiUrl = `https://chart.googleapis.com/chart?cht=qr&chs=${size}x${size}&chl=${encodeURIComponent(text)}&choe=UTF-8`;
 
-        // Draw border
-        ctx.strokeStyle = '#000000';
-        ctx.lineWidth = 2;
-        ctx.strokeRect(10, 10, size - 20, size - 20);
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        img.src = qrApiUrl;
 
-        // Draw corner patterns
-        const drawCorner = (x: number, y: number) => {
-            ctx.fillStyle = '#000000';
-            ctx.fillRect(x, y, 40, 40);
-            ctx.fillStyle = '#ffffff';
-            ctx.fillRect(x + 8, y + 8, 24, 24);
-            ctx.fillStyle = '#000000';
-            ctx.fillRect(x + 14, y + 14, 12, 12);
+        img.onload = () => {
+            ctx.drawImage(img, 0, 0, size, size);
         };
 
-        drawCorner(20, 20);
-        drawCorner(size - 60, 20);
-        drawCorner(20, size - 60);
-
-        // Add text
-        ctx.fillStyle = '#000000';
-        ctx.font = 'bold 12px sans-serif';
-        ctx.textAlign = 'center';
-        ctx.fillText('SPIN WHEEL', size / 2, size / 2 - 10);
-        ctx.font = '10px monospace';
-        ctx.fillText(text.substring(0, 30), size / 2, size / 2 + 10);
-        ctx.fillText(text.substring(30, 60), size / 2, size / 2 + 24);
+        img.onerror = () => {
+            // Fallback to a simpler text-based display
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, size, size);
+            ctx.fillStyle = '#000000';
+            ctx.font = 'bold 14px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('QR Code Error', size / 2, size / 2);
+            ctx.font = '10px sans-serif';
+            ctx.fillText('Copy link instead', size / 2, size / 2 + 20);
+        };
     };
 
     const openQRModal = (project: Project) => {

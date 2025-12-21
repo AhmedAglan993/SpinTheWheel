@@ -14,6 +14,7 @@ import TenantsPage from './pages/admin/TenantsPage';
 import DemoSpinPage from './pages/DemoSpinPage';
 import ContactFormPage from './pages/ContactFormPage';
 import SpinGamePage from './pages/SpinGamePage';
+import RedemptionPage from './pages/RedemptionPage';
 import { useData } from './contexts/DataContext';
 
 // Protected Route Component
@@ -46,6 +47,9 @@ const App: React.FC = () => {
         {/* Both /spin/:projectId and /play/:tenantId use the same component */}
         <Route path="/spin/:tenantId" element={<SpinGamePage />} />
         <Route path="/play/:tenantId" element={<SpinGamePage />} />
+
+        {/* Prize Redemption - Public */}
+        <Route path="/redeem/:token" element={<RedemptionPage />} />
 
         {/* Admin Dashboard (Protected) */}
         <Route path="/admin" element={

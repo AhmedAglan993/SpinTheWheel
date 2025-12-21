@@ -112,14 +112,19 @@ model SpinConfiguration {
 
 // Record of all spins
 model SpinHistory {
-  id         String   @id @default(uuid())
-  tenantId   String
-  projectId  String?  // Optional: track which project this spin belongs to
-  userName   String?  // Name of person who spun
-  userEmail  String?  // Email of person who spun
-  userPhone  String?  // Phone of person who spun
-  prizeWon   String   // Name of prize won
-  timestamp  DateTime @default(now())
+  id              String   @id @default(uuid())
+  tenantId        String
+  projectId       String?  // Optional: track which project this spin belongs to
+  userName        String?  // Name of person who spun
+  userEmail       String?  // Email of person who spun
+  userPhone       String?  // Phone of person who spun
+  prizeWon        String   // Name of prize won
+  timestamp       DateTime @default(now())
+  
+  // Redemption fields for booth mode
+  redemptionToken String?  @unique // Token for QR code redemption
+  isRedeemed      Boolean  @default(false) // Whether prize has been redeemed
+  redeemedAt      DateTime? // When the prize was redeemed
 
   // Relations
   tenant     Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)

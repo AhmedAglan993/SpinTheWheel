@@ -321,6 +321,12 @@ router.post('/record', async (req, res: Response) => {
             });
         }
 
+        // Generate redemption token for booth mode (when no contact info provided)
+        const needsRedemption = !userEmail && !userPhone;
+        const redemptionToken = needsRedemption
+            ? `${Date.now().toString(36)}-${Math.random().toString(36).substring(2, 8)}`.toUpperCase()
+            : undefined;
+
         // Record the spin with user phone
         const record = await prisma.spinHistory.create({
             data: {
@@ -329,7 +335,9 @@ router.post('/record', async (req, res: Response) => {
                 userName,
                 userEmail,
                 userPhone,
-                prizeWon
+                prizeWon,
+                redemptionToken,
+                isRedeemed: !needsRedemption // Already redeemed if contact provided
             }
         });
 
@@ -349,7 +357,10 @@ router.post('/record', async (req, res: Response) => {
             }
         }
 
-        res.status(201).json(record);
+        res.status(201).json({
+            ...record,
+            redemptionToken: record.redemptionToken
+        });
     } catch (error) {
         console.error('Record spin error:', error);
         res.status(500).json({ error: 'Failed to record spin' });
