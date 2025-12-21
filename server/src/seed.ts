@@ -35,20 +35,24 @@ async function seed() {
         ];
 
         for (const prize of prizes) {
-            await prisma.prize.upsert({
+            const existingPrize = await prisma.prize.findFirst({
                 where: {
-                    tenantId_name: {
-                        tenantId: demoTenant.id,
-                        name: prize.name
-                    }
-                },
-                update: {},
-                create: {
                     tenantId: demoTenant.id,
-                    ...prize,
-                    status: 'Active'
+                    projectId: null,
+                    name: prize.name
                 }
             });
+
+            if (!existingPrize) {
+                await prisma.prize.create({
+                    data: {
+                        tenantId: demoTenant.id,
+                        projectId: null,
+                        ...prize,
+                        status: 'Active'
+                    }
+                });
+            }
         }
 
         console.log(`✅ Created ${prizes.length} prizes`);
