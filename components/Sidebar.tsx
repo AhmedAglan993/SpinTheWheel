@@ -69,6 +69,14 @@ const Sidebar: React.FC = () => {
                   </>
                 )}
               </NavLink>
+              <NavLink to="/admin/settings" className={linkClass}>
+                {({ isActive }) => (
+                  <>
+                    <span className={iconClass(isActive)}>settings</span>
+                    Settings
+                  </>
+                )}
+              </NavLink>
             </>
           )}
 
