@@ -35,6 +35,8 @@ model Tenant {
   spinHistory     SpinHistory[]
   contactRequests ContactRequest[]
   projects        Project[]
+  prizeTemplates  PrizeTemplate[]
+  prizeHistorySnapshots PrizeHistorySnapshot[]
 
   @@map("tenants")
 }
@@ -189,3 +191,35 @@ model Project {
 
   @@map("projects")
 }
+
+// Prize Template for reusable configurations
+model PrizeTemplate {
+  id          String   @id @default(uuid())
+  tenantId    String
+  name        String   // Template name
+  description String?  // Optional description
+  prizes      Json     // Array of prize objects (snapshot)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, name])
+  @@map("prize_templates")
+}
+
+// Prize History Snapshot for tracking changes
+model PrizeHistorySnapshot {
+  id          String   @id @default(uuid())
+  tenantId    String
+  projectId   String?
+  prizes      Json     // Array of prize objects at this point
+  action      String   // "created", "modified", "imported", "deleted"
+  description String?  // Optional note
+  createdAt   DateTime @default(now())
+
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@map("prize_history_snapshots")
+}
+

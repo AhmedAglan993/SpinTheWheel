@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useData } from '../../contexts/DataContext';
 import { Prize } from '../../types';
 import { projectsAPI } from '../../src/services/api';
+import ImportPrizesModal from '../../components/ImportPrizesModal';
 
 interface Project {
   id: string;
@@ -12,6 +13,7 @@ interface Project {
 const PrizesPage: React.FC = () => {
   const { currentTenant, prizes, addPrize, updatePrize, deletePrize, setSelectedProjectId, refreshPrizes } = useData();
   const [showForm, setShowForm] = useState(false);
+  const [showImportModal, setShowImportModal] = useState(false);
   const [editingPrize, setEditingPrize] = useState<Prize | null>(null);
   const [projects, setProjects] = useState<Project[]>([]);
   const [selectedProjectFilter, setSelectedProjectFilter] = useState<string>('');
@@ -119,13 +121,22 @@ const PrizesPage: React.FC = () => {
             ))}
           </select>
         </div>
-        <button
-          onClick={() => setShowForm(!showForm)}
-          className="flex items-center gap-2 bg-primary text-white px-6 py-3 rounded-lg font-bold shadow-lg shadow-primary/20 hover:bg-primary-dark transition-colors"
-        >
-          <span className="material-symbols-outlined">{showForm ? 'close' : 'add'}</span>
-          {showForm ? 'Cancel' : 'Add New Prize'}
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setShowImportModal(true)}
+            className="flex items-center gap-2 border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 px-4 py-3 rounded-lg font-medium hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+          >
+            <span className="material-symbols-outlined">upload</span>
+            Import
+          </button>
+          <button
+            onClick={() => setShowForm(!showForm)}
+            className="flex items-center gap-2 bg-primary text-white px-6 py-3 rounded-lg font-bold shadow-lg shadow-primary/20 hover:bg-primary-dark transition-colors"
+          >
+            <span className="material-symbols-outlined">{showForm ? 'close' : 'add'}</span>
+            {showForm ? 'Cancel' : 'Add New Prize'}
+          </button>
+        </div>
       </div>
 
       {/* Quick Add Form */}
@@ -408,6 +419,17 @@ const PrizesPage: React.FC = () => {
           </table>
         </div>
       </div>
+
+      {/* Import Modal */}
+      <ImportPrizesModal
+        isOpen={showImportModal}
+        onClose={() => setShowImportModal(false)}
+        projectId={selectedProjectFilter || null}
+        onImportComplete={() => {
+          refreshPrizes(selectedProjectFilter || null);
+          setShowImportModal(false);
+        }}
+      />
     </div>
   );
 };

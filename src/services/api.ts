@@ -253,5 +253,46 @@ export const ownerAPI = {
     }
 };
 
+// Prize Import API
+export const prizeImportAPI = {
+    // Import prizes from parsed CSV/Excel data
+    importPrizes: async (prizes: any[], projectId?: string) => {
+        const response = await api.post('/prizes/import', { prizes, projectId });
+        return response.data;
+    },
+
+    // Templates
+    getTemplates: async () => {
+        const response = await api.get('/prizes/templates');
+        return response.data;
+    },
+
+    createTemplate: async (name: string, description?: string, projectId?: string) => {
+        const response = await api.post('/prizes/templates', { name, description, projectId });
+        return response.data;
+    },
+
+    deleteTemplate: async (id: string) => {
+        const response = await api.delete(`/prizes/templates/${id}`);
+        return response.data;
+    },
+
+    applyTemplate: async (id: string, projectId?: string, clearExisting = false) => {
+        const response = await api.post(`/prizes/templates/${id}/apply`, { projectId, clearExisting });
+        return response.data;
+    },
+
+    // History
+    getHistory: async (projectId?: string) => {
+        const response = await api.get('/prizes/history', { params: { projectId } });
+        return response.data;
+    },
+
+    restoreFromHistory: async (snapshotId: string, projectId?: string) => {
+        const response = await api.post(`/prizes/history/${snapshotId}/restore`, { projectId });
+        return response.data;
+    }
+};
+
 export default api;
 

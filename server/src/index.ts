@@ -3,6 +3,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import authRoutes from './routes/auth';
 import prizesRoutes from './routes/prizes';
+import prizeImportRoutes from './routes/prizeImport';
 import usersRoutes from './routes/users';
 import spinRoutes from './routes/spin';
 import contactRoutes from './routes/contact';
@@ -38,6 +39,7 @@ app.use((req, res, next) => {
 // API Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/prizes', prizesRoutes);
+app.use('/api/prizes', prizeImportRoutes); // Import routes under /api/prizes
 app.use('/api/users', usersRoutes);
 app.use('/api/spin', spinRoutes);
 app.use('/api/contact', contactRoutes);
