@@ -47,8 +47,20 @@ const DashboardPage: React.FC = () => {
   const checkOwnerStatus = async () => {
     try {
       // Try to fetch owner stats - if it succeeds, user is owner
-      await ownerAPI.getStats();
+      const globalStats = await ownerAPI.getStats();
       setIsOwner(true);
+      setViewMode('global');
+      // Immediately set global stats
+      setStats({
+        totalSpins: globalStats.totalSpins,
+        uniqueUsers: globalStats.uniqueUsers,
+        prizesWon: globalStats.prizesWon,
+        chartData: globalStats.chartData,
+        totalProjects: globalStats.totalProjects,
+        activeProjects: globalStats.activeProjects,
+        totalTenants: globalStats.totalTenants
+      });
+      setLoading(false);
     } catch {
       setIsOwner(false);
     }
@@ -131,31 +143,11 @@ const DashboardPage: React.FC = () => {
 
   return (
     <div className="flex flex-col gap-6">
-      {/* View Mode Toggle for Owners */}
+      {/* Platform Owner Banner */}
       {isOwner && (
-        <div className="flex items-center gap-4 p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl">
+        <div className="flex items-center gap-3 p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl">
           <span className="material-symbols-outlined text-amber-600">admin_panel_settings</span>
-          <span className="text-amber-800 dark:text-amber-200 font-medium">Platform Owner View:</span>
-          <div className="flex gap-2">
-            <button
-              onClick={() => handleViewModeChange('tenant')}
-              className={`px-4 py-2 rounded-lg font-medium transition-colors ${viewMode === 'tenant'
-                  ? 'bg-amber-600 text-white'
-                  : 'bg-amber-100 dark:bg-amber-800/40 text-amber-800 dark:text-amber-200 hover:bg-amber-200'
-                }`}
-            >
-              My Stats
-            </button>
-            <button
-              onClick={() => handleViewModeChange('global')}
-              className={`px-4 py-2 rounded-lg font-medium transition-colors ${viewMode === 'global'
-                  ? 'bg-amber-600 text-white'
-                  : 'bg-amber-100 dark:bg-amber-800/40 text-amber-800 dark:text-amber-200 hover:bg-amber-200'
-                }`}
-            >
-              Global Stats (All Tenants)
-            </button>
-          </div>
+          <span className="text-amber-800 dark:text-amber-200 font-medium">Platform Owner Dashboard — Global Statistics</span>
         </div>
       )}
 
