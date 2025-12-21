@@ -70,6 +70,13 @@ router.get('/stats', authenticate, requireOwner, async (req: AuthRequest, res: R
             where: { status: 'Active' }
         });
 
+        // Count unique users (by email)
+        const uniqueEmails = await prisma.spinHistory.groupBy({
+            by: ['userEmail'],
+            where: { userEmail: { not: null } }
+        });
+        const uniqueUsers = uniqueEmails.length;
+
         // Get recent signups (last 30 days)
         const thirtyDaysAgo = new Date();
         thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
@@ -81,34 +88,41 @@ router.get('/stats', authenticate, requireOwner, async (req: AuthRequest, res: R
             }
         });
 
-        // Get signups by day for chart
-        const recentTenants = await prisma.tenant.findMany({
-            where: {
-                isOwner: false,
-                createdAt: { gte: thirtyDaysAgo }
-            },
-            select: { createdAt: true },
-            orderBy: { createdAt: 'asc' }
+        // Get spins by day for chart (last 30 days)
+        const recentSpins = await prisma.spinHistory.findMany({
+            where: { timestamp: { gte: thirtyDaysAgo } },
+            select: { timestamp: true },
+            orderBy: { timestamp: 'asc' }
         });
 
-        const dailySignups: { [key: string]: number } = {};
-        recentTenants.forEach(t => {
-            const day = t.createdAt.toISOString().split('T')[0];
-            dailySignups[day] = (dailySignups[day] || 0) + 1;
+        const dailySpins: { [key: string]: number } = {};
+        recentSpins.forEach(s => {
+            const day = s.timestamp.toISOString().split('T')[0];
+            dailySpins[day] = (dailySpins[day] || 0) + 1;
         });
 
-        const chartData = Object.entries(dailySignups).map(([date, count]) => ({
+        const chartData = Object.entries(dailySpins).map(([date, count]) => ({
             date,
-            signups: count
+            spins: count
         }));
+
+        // Get prizes won breakdown
+        const prizesWon = await prisma.spinHistory.groupBy({
+            by: ['prizeWon'],
+            _count: { prizeWon: true },
+            orderBy: { _count: { prizeWon: 'desc' } },
+            take: 10
+        });
 
         res.json({
             totalTenants,
             totalProjects,
             totalSpins,
             activeProjects,
+            uniqueUsers,
             recentSignups,
-            chartData
+            chartData,
+            prizesWon
         });
     } catch (error) {
         console.error('Get owner stats error:', error);
@@ -154,4 +168,100 @@ router.get('/tenant/:id', authenticate, requireOwner, async (req: AuthRequest, r
     }
 });
 
+// GET /api/owner/projects - Get all projects from all tenants (owner only)
+router.get('/projects', authenticate, requireOwner, async (req: AuthRequest, res: Response) => {
+    try {
+        const projects = await prisma.project.findMany({
+            include: {
+                tenant: {
+                    select: {
+                        id: true,
+                        name: true,
+                        email: true
+                    }
+                },
+                _count: {
+                    select: {
+                        prizes: true,
+                        spinHistory: true
+                    }
+                }
+            },
+            orderBy: { createdAt: 'desc' }
+        });
+
+        res.json(projects);
+    } catch (error) {
+        console.error('Get all projects error:', error);
+        res.status(500).json({ error: 'Failed to fetch all projects' });
+    }
+});
+
+// GET /api/owner/prizes - Get all prizes from all tenants (owner only)
+router.get('/prizes', authenticate, requireOwner, async (req: AuthRequest, res: Response) => {
+    try {
+        const prizes = await prisma.prize.findMany({
+            include: {
+                tenant: {
+                    select: {
+                        id: true,
+                        name: true,
+                        email: true
+                    }
+                },
+                project: {
+                    select: {
+                        id: true,
+                        name: true
+                    }
+                }
+            },
+            orderBy: { createdAt: 'desc' }
+        });
+
+        res.json(prizes);
+    } catch (error) {
+        console.error('Get all prizes error:', error);
+        res.status(500).json({ error: 'Failed to fetch all prizes' });
+    }
+});
+
+// GET /api/owner/leads - Get all leads (spin history) from all tenants (owner only)
+router.get('/leads', authenticate, requireOwner, async (req: AuthRequest, res: Response) => {
+    try {
+        const leads = await prisma.spinHistory.findMany({
+            where: {
+                OR: [
+                    { userName: { not: null } },
+                    { userEmail: { not: null } },
+                    { userPhone: { not: null } }
+                ]
+            },
+            include: {
+                tenant: {
+                    select: {
+                        id: true,
+                        name: true,
+                        email: true
+                    }
+                },
+                project: {
+                    select: {
+                        id: true,
+                        name: true
+                    }
+                }
+            },
+            orderBy: { timestamp: 'desc' },
+            take: 1000 // Limit to last 1000 leads for performance
+        });
+
+        res.json(leads);
+    } catch (error) {
+        console.error('Get all leads error:', error);
+        res.status(500).json({ error: 'Failed to fetch all leads' });
+    }
+});
+
 export default router;
+

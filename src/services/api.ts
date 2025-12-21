@@ -250,6 +250,21 @@ export const ownerAPI = {
     getTenantDetails: async (id: string) => {
         const response = await api.get(`/owner/tenant/${id}`);
         return response.data;
+    },
+
+    getAllProjects: async () => {
+        const response = await api.get('/owner/projects');
+        return response.data;
+    },
+
+    getAllPrizes: async () => {
+        const response = await api.get('/owner/prizes');
+        return response.data;
+    },
+
+    getAllLeads: async () => {
+        const response = await api.get('/owner/leads');
+        return response.data;
     }
 };
 
