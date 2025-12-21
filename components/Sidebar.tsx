@@ -47,7 +47,7 @@ const Sidebar: React.FC = () => {
             )}
           </NavLink>
 
-          {/* Owner-only: All Tenants */}
+          {/* Owner-only: Platform Management */}
           {isOwner && (
             <>
               <div className="px-3 py-2 mt-2 text-xs font-semibold text-slate-400 uppercase tracking-wider">
@@ -57,7 +57,7 @@ const Sidebar: React.FC = () => {
                 {({ isActive }) => (
                   <>
                     <span className={iconClass(isActive)}>business</span>
-                    All Tenants
+                    Clients & Restaurants
                   </>
                 )}
               </NavLink>
@@ -72,49 +72,54 @@ const Sidebar: React.FC = () => {
             </>
           )}
 
-          <div className="px-3 py-2 mt-2 text-xs font-semibold text-slate-400 uppercase tracking-wider">
-            {isOwner ? 'My Business' : 'Agency'}
-          </div>
-          <NavLink to="/admin/projects" className={linkClass}>
-            {({ isActive }) => (
-              <>
-                <span className={iconClass(isActive)}>folder</span>
-                Projects
-              </>
-            )}
-          </NavLink>
+          {/* Tenant-only: Business items (hidden for owner) */}
+          {!isOwner && (
+            <>
+              <div className="px-3 py-2 mt-2 text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                Agency
+              </div>
+              <NavLink to="/admin/projects" className={linkClass}>
+                {({ isActive }) => (
+                  <>
+                    <span className={iconClass(isActive)}>folder</span>
+                    Projects
+                  </>
+                )}
+              </NavLink>
 
-          <div className="px-3 py-2 mt-2 text-xs font-semibold text-slate-400 uppercase tracking-wider">
-            Game Setup
-          </div>
-          <NavLink to="/admin/settings" className={linkClass}>
-            {({ isActive }) => (
-              <>
-                <span className={iconClass(isActive)}>tune</span>
-                Customization
-              </>
-            )}
-          </NavLink>
-          <NavLink to="/admin/prizes" className={linkClass}>
-            {({ isActive }) => (
-              <>
-                <span className={iconClass(isActive)}>emoji_events</span>
-                Prizes
-              </>
-            )}
-          </NavLink>
+              <div className="px-3 py-2 mt-2 text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                Game Setup
+              </div>
+              <NavLink to="/admin/settings" className={linkClass}>
+                {({ isActive }) => (
+                  <>
+                    <span className={iconClass(isActive)}>tune</span>
+                    Customization
+                  </>
+                )}
+              </NavLink>
+              <NavLink to="/admin/prizes" className={linkClass}>
+                {({ isActive }) => (
+                  <>
+                    <span className={iconClass(isActive)}>emoji_events</span>
+                    Prizes
+                  </>
+                )}
+              </NavLink>
 
-          <div className="px-3 py-2 mt-2 text-xs font-semibold text-slate-400 uppercase tracking-wider">
-            Data
-          </div>
-          <NavLink to="/admin/leads" className={linkClass}>
-            {({ isActive }) => (
-              <>
-                <span className={iconClass(isActive)}>group</span>
-                Collected Leads
-              </>
-            )}
-          </NavLink>
+              <div className="px-3 py-2 mt-2 text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                Data
+              </div>
+              <NavLink to="/admin/leads" className={linkClass}>
+                {({ isActive }) => (
+                  <>
+                    <span className={iconClass(isActive)}>group</span>
+                    Collected Leads
+                  </>
+                )}
+              </NavLink>
+            </>
+          )}
         </nav>
 
         {/* Bottom Actions */}
