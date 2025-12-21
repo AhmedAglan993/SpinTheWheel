@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useData } from '../../contexts/DataContext';
 
 // Complete theme presets with all colors
@@ -99,6 +99,35 @@ const SettingsPage: React.FC = () => {
   const [textColor, setTextColor] = useState(currentTenant?.textColor || '#0f172a');
   const [isSaving, setIsSaving] = useState(false);
 
+  // Dashboard theme state
+  const [dashboardTheme, setDashboardTheme] = useState<'light' | 'dark' | 'system'>(() => {
+    return (localStorage.getItem('dashboardTheme') as 'light' | 'dark' | 'system') || 'system';
+  });
+
+  // Check if current user is platform owner
+  const isOwner = (currentTenant as any)?.isOwner === true;
+
+  // Apply dashboard theme
+  useEffect(() => {
+    const applyTheme = () => {
+      const root = document.documentElement;
+      if (dashboardTheme === 'dark') {
+        root.classList.add('dark');
+      } else if (dashboardTheme === 'light') {
+        root.classList.remove('dark');
+      } else {
+        // System preference
+        if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+          root.classList.add('dark');
+        } else {
+          root.classList.remove('dark');
+        }
+      }
+    };
+    applyTheme();
+    localStorage.setItem('dashboardTheme', dashboardTheme);
+  }, [dashboardTheme]);
+
   if (!currentTenant) return null;
 
   const handleSelectTheme = (theme: typeof THEME_PRESETS[0]) => {
@@ -130,260 +159,361 @@ const SettingsPage: React.FC = () => {
 
   return (
     <div className="flex flex-col gap-6 max-w-5xl">
-      {/* Theme Presets Section */}
-      <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm">
-        <h3 className="text-lg font-bold mb-4">🎨 Theme Presets</h3>
-        <p className="text-sm text-slate-600 dark:text-slate-400 mb-6">
-          Choose a complete theme or customize individual colors below
-        </p>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {THEME_PRESETS.map((theme) => (
-            <button
-              key={theme.name}
-              onClick={() => handleSelectTheme(theme)}
-              className="group relative p-4 rounded-xl border-2 transition-all hover:scale-105 hover:shadow-lg"
-              style={{
-                borderColor: primaryColor === theme.primaryColor &&
-                  secondaryColor === theme.secondaryColor ?
-                  theme.primaryColor : '#e2e8f0',
-                backgroundColor: theme.backgroundColor
-              }}
-            >
-              {/* Color Swatches */}
-              <div className="flex gap-2 mb-3">
-                <div
-                  className="w-8 h-8 rounded-full shadow-md ring-2 ring-white"
-                  style={{ backgroundColor: theme.primaryColor }}
-                />
-                <div
-                  className="w-8 h-8 rounded-full shadow-md ring-2 ring-white"
-                  style={{ backgroundColor: theme.secondaryColor }}
-                />
-                <div
-                  className="w-8 h-8 rounded-full shadow-md ring-2 ring-white"
-                  style={{ backgroundColor: theme.backgroundColor }}
-                />
-              </div>
-
-              <p className="font-bold text-sm" style={{ color: theme.textColor }}>
-                {theme.name}
-              </p>
-
-              {/* Selected Indicator */}
-              {primaryColor === theme.primaryColor &&
-                secondaryColor === theme.secondaryColor && (
-                  <div className="absolute -top-2 -right-2 bg-green-500 text-white rounded-full p-1">
-                    <span className="material-symbols-outlined !text-base">check</span>
-                  </div>
-                )}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Business Info */}
-      <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm">
-        <h3 className="text-lg font-bold mb-6">🏢 Business Information</h3>
-
-        <div className="space-y-6">
-          {/* Logo */}
-          <div>
-            <label className="block text-sm font-medium mb-2">Company Logo URL</label>
-            <div className="flex items-center gap-4">
-              <div className="size-16 rounded-lg border border-slate-200 bg-slate-50 flex items-center justify-center overflow-hidden">
-                {logo ? (
-                  <img src={logo} alt="Logo" className="w-full h-full object-cover" />
-                ) : (
-                  <span className="material-symbols-outlined text-slate-400">image</span>
-                )}
-              </div>
-              <input
-                type="text"
-                value={logo}
-                onChange={(e) => setLogo(e.target.value)}
-                className="flex-1 p-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-transparent"
-                placeholder="https://..."
-              />
-            </div>
-          </div>
-
-          {/* Business Name */}
-          <div>
-            <label className="block text-sm font-medium mb-2">Display Name</label>
-            <input
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              className="w-full p-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-transparent"
-              placeholder="Your Business Name"
-            />
-          </div>
-        </div>
-      </div>
-
-      {/* Custom Colors Section */}
-      <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm">
-        <h3 className="text-lg font-bold mb-4">🎨 Custom Color Palette</h3>
-        <p className="text-sm text-slate-600 dark:text-slate-400 mb-6">
-          Fine-tune individual colors or select a preset above
-        </p>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Primary Color */}
-          <div>
-            <label className="block text-sm font-semibold mb-3">Primary Color</label>
-            <p className="text-xs text-slate-500 mb-3">Main buttons, accents, wheel pointer</p>
-            <div className="flex items-center gap-3">
-              <input
-                type="color"
-                value={primaryColor}
-                onChange={(e) => setPrimaryColor(e.target.value)}
-                className="h-12 w-16 rounded-lg cursor-pointer border-2 border-white shadow-md"
-              />
-              <input
-                type="text"
-                value={primaryColor}
-                onChange={(e) => setPrimaryColor(e.target.value)}
-                className="flex-1 p-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-transparent font-mono text-sm"
-              />
-            </div>
-          </div>
-
-          {/* Secondary Color */}
-          <div>
-            <label className="block text-sm font-semibold mb-3">Secondary Color</label>
-            <p className="text-xs text-slate-500 mb-3">Secondary accents, highlights</p>
-            <div className="flex items-center gap-3">
-              <input
-                type="color"
-                value={secondaryColor}
-                onChange={(e) => setSecondaryColor(e.target.value)}
-                className="h-12 w-16 rounded-lg cursor-pointer border-2 border-white shadow-md"
-              />
-              <input
-                type="text"
-                value={secondaryColor}
-                onChange={(e) => setSecondaryColor(e.target.value)}
-                className="flex-1 p-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-transparent font-mono text-sm"
-              />
-            </div>
-          </div>
-
-          {/* Background Color */}
-          <div>
-            <label className="block text-sm font-semibold mb-3">Background Color</label>
-            <p className="text-xs text-slate-500 mb-3">Page background</p>
-            <div className="flex items-center gap-3">
-              <input
-                type="color"
-                value={backgroundColor}
-                onChange={(e) => setBackgroundColor(e.target.value)}
-                className="h-12 w-16 rounded-lg cursor-pointer border-2 border-white shadow-md"
-              />
-              <input
-                type="text"
-                value={backgroundColor}
-                onChange={(e) => setBackgroundColor(e.target.value)}
-                className="flex-1 p-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-transparent font-mono text-sm"
-              />
-            </div>
-          </div>
-
-          {/* Text Color */}
-          <div>
-            <label className="block text-sm font-semibold mb-3">Text Color</label>
-            <p className="text-xs text-slate-500 mb-3">Main text and headings</p>
-            <div className="flex items-center gap-3">
-              <input
-                type="color"
-                value={textColor}
-                onChange={(e) => setTextColor(e.target.value)}
-                className="h-12 w-16 rounded-lg cursor-pointer border-2 border-white shadow-md"
-              />
-              <input
-                type="text"
-                value={textColor}
-                onChange={(e) => setTextColor(e.target.value)}
-                className="flex-1 p-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-transparent font-mono text-sm"
-              />
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Live Preview */}
-      <div
-        className="rounded-xl border-2 p-8 shadow-lg transition-all"
-        style={{
-          backgroundColor: backgroundColor,
-          borderColor: primaryColor,
-          color: textColor
-        }}
-      >
-        <h3 className="text-xl font-bold mb-4" style={{ color: textColor }}>
-          🎪 Live Preview
+      {/* Dashboard Theme Section (for all users) */}
+      <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-6 shadow-sm">
+        <h3 className="text-lg font-bold mb-4 text-slate-900 dark:text-white flex items-center gap-2">
+          <span className="material-symbols-outlined">dark_mode</span>
+          Dashboard Theme
         </h3>
-        <p className="text-sm mb-6 opacity-80">How your spin game will look:</p>
+        <p className="text-sm text-slate-600 dark:text-slate-400 mb-6">
+          Choose how the admin dashboard appears
+        </p>
 
-        <div className="flex flex-wrap items-center gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <button
-            style={{ backgroundColor: primaryColor }}
-            className="px-8 py-4 rounded-xl text-white font-bold shadow-xl transform hover:scale-105 transition-all"
+            onClick={() => setDashboardTheme('light')}
+            className={`p-4 rounded-xl border-2 transition-all flex flex-col items-center gap-3 ${dashboardTheme === 'light'
+                ? 'border-primary bg-primary/5'
+                : 'border-slate-200 dark:border-slate-700 hover:border-slate-300'
+              }`}
           >
-            SPIN THE WHEEL
+            <div className="w-12 h-12 rounded-full bg-white border-2 border-slate-200 flex items-center justify-center">
+              <span className="material-symbols-outlined text-amber-500">light_mode</span>
+            </div>
+            <span className="font-medium text-slate-900 dark:text-white">Light</span>
+            {dashboardTheme === 'light' && (
+              <span className="text-xs text-primary font-medium">Active</span>
+            )}
           </button>
 
+          <button
+            onClick={() => setDashboardTheme('dark')}
+            className={`p-4 rounded-xl border-2 transition-all flex flex-col items-center gap-3 ${dashboardTheme === 'dark'
+                ? 'border-primary bg-primary/5'
+                : 'border-slate-200 dark:border-slate-700 hover:border-slate-300'
+              }`}
+          >
+            <div className="w-12 h-12 rounded-full bg-slate-800 border-2 border-slate-600 flex items-center justify-center">
+              <span className="material-symbols-outlined text-indigo-400">dark_mode</span>
+            </div>
+            <span className="font-medium text-slate-900 dark:text-white">Dark</span>
+            {dashboardTheme === 'dark' && (
+              <span className="text-xs text-primary font-medium">Active</span>
+            )}
+          </button>
+
+          <button
+            onClick={() => setDashboardTheme('system')}
+            className={`p-4 rounded-xl border-2 transition-all flex flex-col items-center gap-3 ${dashboardTheme === 'system'
+                ? 'border-primary bg-primary/5'
+                : 'border-slate-200 dark:border-slate-700 hover:border-slate-300'
+              }`}
+          >
+            <div className="w-12 h-12 rounded-full bg-gradient-to-r from-white to-slate-800 border-2 border-slate-300 flex items-center justify-center">
+              <span className="material-symbols-outlined text-slate-600">desktop_windows</span>
+            </div>
+            <span className="font-medium text-slate-900 dark:text-white">System</span>
+            {dashboardTheme === 'system' && (
+              <span className="text-xs text-primary font-medium">Active</span>
+            )}
+          </button>
+        </div>
+      </div>
+
+      {/* Owner-only: Account Settings */}
+      {isOwner && (
+        <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-6 shadow-sm">
+          <h3 className="text-lg font-bold mb-4 text-slate-900 dark:text-white flex items-center gap-2">
+            <span className="material-symbols-outlined">admin_panel_settings</span>
+            Platform Owner Settings
+          </h3>
+          <div className="space-y-4">
+            <div className="flex items-center justify-between p-4 bg-amber-50 dark:bg-amber-900/20 rounded-lg">
+              <div>
+                <p className="font-medium text-amber-800 dark:text-amber-200">Account Type</p>
+                <p className="text-sm text-amber-600 dark:text-amber-400">Platform Owner</p>
+              </div>
+              <span className="material-symbols-outlined text-amber-600 text-3xl">verified</span>
+            </div>
+            <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-700/50 rounded-lg">
+              <div>
+                <p className="font-medium text-slate-900 dark:text-white">Email</p>
+                <p className="text-sm text-slate-600 dark:text-slate-400">{currentTenant.email}</p>
+              </div>
+              <span className="material-symbols-outlined text-slate-400">email</span>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Tenant-only: Spin wheel customization */}
+      {!isOwner && (
+        <>
+          {/* Theme Presets Section */}
+          <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-6 shadow-sm">
+            <h3 className="text-lg font-bold mb-4 text-slate-900 dark:text-white flex items-center gap-2">
+              <span className="material-symbols-outlined">palette</span>
+              Spin Wheel Theme Presets
+            </h3>
+            <p className="text-sm text-slate-600 dark:text-slate-400 mb-6">
+              Choose a complete theme or customize individual colors below
+            </p>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              {THEME_PRESETS.map((theme) => (
+                <button
+                  key={theme.name}
+                  onClick={() => handleSelectTheme(theme)}
+                  className="group relative p-4 rounded-xl border-2 transition-all hover:scale-105 hover:shadow-lg"
+                  style={{
+                    borderColor: primaryColor === theme.primaryColor &&
+                      secondaryColor === theme.secondaryColor ?
+                      theme.primaryColor : '#e2e8f0',
+                    backgroundColor: theme.backgroundColor
+                  }}
+                >
+                  {/* Color Swatches */}
+                  <div className="flex gap-2 mb-3">
+                    <div
+                      className="w-8 h-8 rounded-full shadow-md ring-2 ring-white"
+                      style={{ backgroundColor: theme.primaryColor }}
+                    />
+                    <div
+                      className="w-8 h-8 rounded-full shadow-md ring-2 ring-white"
+                      style={{ backgroundColor: theme.secondaryColor }}
+                    />
+                    <div
+                      className="w-8 h-8 rounded-full shadow-md ring-2 ring-white"
+                      style={{ backgroundColor: theme.backgroundColor }}
+                    />
+                  </div>
+
+                  <p className="font-bold text-sm" style={{ color: theme.textColor }}>
+                    {theme.name}
+                  </p>
+
+                  {/* Selected Indicator */}
+                  {primaryColor === theme.primaryColor &&
+                    secondaryColor === theme.secondaryColor && (
+                      <div className="absolute -top-2 -right-2 bg-green-500 text-white rounded-full p-1">
+                        <span className="material-symbols-outlined !text-base">check</span>
+                      </div>
+                    )}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Business Info */}
+          <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-6 shadow-sm">
+            <h3 className="text-lg font-bold mb-6 text-slate-900 dark:text-white flex items-center gap-2">
+              <span className="material-symbols-outlined">business</span>
+              Business Information
+            </h3>
+
+            <div className="space-y-6">
+              {/* Logo */}
+              <div>
+                <label className="block text-sm font-medium mb-2 text-slate-900 dark:text-white">Company Logo URL</label>
+                <div className="flex items-center gap-4">
+                  <div className="size-16 rounded-lg border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 flex items-center justify-center overflow-hidden">
+                    {logo ? (
+                      <img src={logo} alt="Logo" className="w-full h-full object-cover" />
+                    ) : (
+                      <span className="material-symbols-outlined text-slate-400">image</span>
+                    )}
+                  </div>
+                  <input
+                    type="text"
+                    value={logo}
+                    onChange={(e) => setLogo(e.target.value)}
+                    className="flex-1 p-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-transparent text-slate-900 dark:text-white"
+                    placeholder="https://..."
+                  />
+                </div>
+              </div>
+
+              {/* Business Name */}
+              <div>
+                <label className="block text-sm font-medium mb-2 text-slate-900 dark:text-white">Display Name</label>
+                <input
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  className="w-full p-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-transparent text-slate-900 dark:text-white"
+                  placeholder="Your Business Name"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Custom Colors Section */}
+          <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-6 shadow-sm">
+            <h3 className="text-lg font-bold mb-4 text-slate-900 dark:text-white flex items-center gap-2">
+              <span className="material-symbols-outlined">colorize</span>
+              Custom Color Palette
+            </h3>
+            <p className="text-sm text-slate-600 dark:text-slate-400 mb-6">
+              Fine-tune individual colors or select a preset above
+            </p>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Primary Color */}
+              <div>
+                <label className="block text-sm font-semibold mb-3 text-slate-900 dark:text-white">Primary Color</label>
+                <p className="text-xs text-slate-500 mb-3">Main buttons, accents, wheel pointer</p>
+                <div className="flex items-center gap-3">
+                  <input
+                    type="color"
+                    value={primaryColor}
+                    onChange={(e) => setPrimaryColor(e.target.value)}
+                    className="h-12 w-16 rounded-lg cursor-pointer border-2 border-white shadow-md"
+                  />
+                  <input
+                    type="text"
+                    value={primaryColor}
+                    onChange={(e) => setPrimaryColor(e.target.value)}
+                    className="flex-1 p-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-transparent font-mono text-sm text-slate-900 dark:text-white"
+                  />
+                </div>
+              </div>
+
+              {/* Secondary Color */}
+              <div>
+                <label className="block text-sm font-semibold mb-3 text-slate-900 dark:text-white">Secondary Color</label>
+                <p className="text-xs text-slate-500 mb-3">Secondary accents, highlights</p>
+                <div className="flex items-center gap-3">
+                  <input
+                    type="color"
+                    value={secondaryColor}
+                    onChange={(e) => setSecondaryColor(e.target.value)}
+                    className="h-12 w-16 rounded-lg cursor-pointer border-2 border-white shadow-md"
+                  />
+                  <input
+                    type="text"
+                    value={secondaryColor}
+                    onChange={(e) => setSecondaryColor(e.target.value)}
+                    className="flex-1 p-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-transparent font-mono text-sm text-slate-900 dark:text-white"
+                  />
+                </div>
+              </div>
+
+              {/* Background Color */}
+              <div>
+                <label className="block text-sm font-semibold mb-3 text-slate-900 dark:text-white">Background Color</label>
+                <p className="text-xs text-slate-500 mb-3">Page background</p>
+                <div className="flex items-center gap-3">
+                  <input
+                    type="color"
+                    value={backgroundColor}
+                    onChange={(e) => setBackgroundColor(e.target.value)}
+                    className="h-12 w-16 rounded-lg cursor-pointer border-2 border-white shadow-md"
+                  />
+                  <input
+                    type="text"
+                    value={backgroundColor}
+                    onChange={(e) => setBackgroundColor(e.target.value)}
+                    className="flex-1 p-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-transparent font-mono text-sm text-slate-900 dark:text-white"
+                  />
+                </div>
+              </div>
+
+              {/* Text Color */}
+              <div>
+                <label className="block text-sm font-semibold mb-3 text-slate-900 dark:text-white">Text Color</label>
+                <p className="text-xs text-slate-500 mb-3">Main text and headings</p>
+                <div className="flex items-center gap-3">
+                  <input
+                    type="color"
+                    value={textColor}
+                    onChange={(e) => setTextColor(e.target.value)}
+                    className="h-12 w-16 rounded-lg cursor-pointer border-2 border-white shadow-md"
+                  />
+                  <input
+                    type="text"
+                    value={textColor}
+                    onChange={(e) => setTextColor(e.target.value)}
+                    className="flex-1 p-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-transparent font-mono text-sm text-slate-900 dark:text-white"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Live Preview */}
           <div
-            className="px-6 py-3 rounded-lg font-semibold border-2"
+            className="rounded-xl border-2 p-8 shadow-lg transition-all"
             style={{
-              borderColor: secondaryColor,
-              color: secondaryColor,
-              backgroundColor: `${secondaryColor}10`
+              backgroundColor: backgroundColor,
+              borderColor: primaryColor,
+              color: textColor
             }}
           >
-            Prize Won!
+            <h3 className="text-xl font-bold mb-4" style={{ color: textColor }}>
+              🎪 Live Preview
+            </h3>
+            <p className="text-sm mb-6 opacity-80">How your spin game will look:</p>
+
+            <div className="flex flex-wrap items-center gap-4">
+              <button
+                style={{ backgroundColor: primaryColor }}
+                className="px-8 py-4 rounded-xl text-white font-bold shadow-xl transform hover:scale-105 transition-all"
+              >
+                SPIN THE WHEEL
+              </button>
+
+              <div
+                className="px-6 py-3 rounded-lg font-semibold border-2"
+                style={{
+                  borderColor: secondaryColor,
+                  color: secondaryColor,
+                  backgroundColor: `${secondaryColor}10`
+                }}
+              >
+                Prize Won!
+              </div>
+
+              <div className="flex gap-2">
+                <div
+                  className="w-12 h-12 rounded-full shadow-md"
+                  style={{ backgroundColor: primaryColor }}
+                />
+                <div
+                  className="w-12 h-12 rounded-full shadow-md"
+                  style={{ backgroundColor: secondaryColor }}
+                />
+              </div>
+            </div>
           </div>
 
-          <div className="flex gap-2">
-            <div
-              className="w-12 h-12 rounded-full shadow-md"
-              style={{ backgroundColor: primaryColor }}
-            />
-            <div
-              className="w-12 h-12 rounded-full shadow-md"
-              style={{ backgroundColor: secondaryColor }}
-            />
+          {/* Save Button */}
+          <div className="flex items-center justify-between p-6 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
+            <div>
+              <p className="text-sm font-medium text-slate-900 dark:text-white">Ready to apply your theme?</p>
+              <p className="text-xs text-slate-500 mt-1">
+                💡 Changes will be visible immediately on your spin game
+              </p>
+            </div>
+            <button
+              onClick={handleSave}
+              disabled={isSaving}
+              className="px-8 py-3 bg-primary text-white font-bold rounded-xl hover:bg-primary-dark transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 shadow-lg"
+            >
+              {isSaving ? (
+                <>
+                  <span className="material-symbols-outlined animate-spin">refresh</span>
+                  Saving Theme...
+                </>
+              ) : (
+                <>
+                  <span className="material-symbols-outlined">palette</span>
+                  Save Theme
+                </>
+              )}
+            </button>
           </div>
-        </div>
-      </div>
-
-      {/* Save Button */}
-      <div className="flex items-center justify-between p-6 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
-        <div>
-          <p className="text-sm font-medium">Ready to apply your theme?</p>
-          <p className="text-xs text-slate-500 mt-1">
-            💡 Changes will be visible immediately on your spin game
-          </p>
-        </div>
-        <button
-          onClick={handleSave}
-          disabled={isSaving}
-          className="px-8 py-3 bg-primary text-white font-bold rounded-xl hover:bg-primary-dark transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 shadow-lg"
-        >
-          {isSaving ? (
-            <>
-              <span className="material-symbols-outlined animate-spin">refresh</span>
-              Saving Theme...
-            </>
-          ) : (
-            <>
-              <span className="material-symbols-outlined">palette</span>
-              Save Theme
-            </>
-          )}
-        </button>
-      </div>
+        </>
+      )}
     </div>
   );
 };
